@@ -1,0 +1,199 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { HeartHandshake, Menu, Moon, Sun, X } from "lucide-react";
+import { useTheme } from "@/app/ThemeProvider";
+
+type StoredUser = {
+  name?: string;
+  email?: string;
+  photoURL?: string;
+};
+
+function SiteHeader() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
+  const [user, setUser] = useState<StoredUser | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    const readUser = () => {
+      try {
+        const token = localStorage.getItem("token");
+        const value = localStorage.getItem("user");
+        setUser(token && value ? (JSON.parse(value) as StoredUser) : null);
+      } catch {
+        setUser(null);
+      }
+    };
+    readUser();
+    window.addEventListener("storage", readUser);
+    return () => window.removeEventListener("storage", readUser);
+  }, [pathname]);
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setProfileOpen(false);
+    setMobileOpen(false);
+    router.push("/login");
+  }
+
+  const navLinks = [
+    { href: "/events", label: "Upcoming Events" },
+    { href: "/dashboard", label: "Dashboard", protected: true },
+  ];
+
+  if (pathname === "/") return null;
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 text-slate-900 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-100">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Shohojogi home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-800 text-amber-300">
+            <HeartHandshake size={23} aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-lg font-extrabold tracking-tight text-teal-800 dark:text-teal-300">Shohojogi</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Serve Together</span>
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+          {navLinks.filter((link) => !link.protected || user).map((link) => (
+            <Link key={link.href} href={link.href} className="text-sm font-semibold text-slate-600 transition hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300">
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-3 md:flex">
+          <button type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} className="rounded-xl border border-slate-200 p-2.5 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          {user ? (
+            <div className="relative flex items-center gap-3">
+              <button type="button" title={user.name || user.email || "Your profile"} onClick={() => setProfileOpen((open) => !open)} className="flex items-center gap-2 rounded-full focus-visible:outline-2 focus-visible:outline-teal-600">
+                {user.photoURL ? <Image src={user.photoURL} alt={user.name || "Profile"} width={36} height={36} unoptimized className="h-9 w-9 rounded-full object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 font-bold text-teal-800">{user.name?.charAt(0).toUpperCase() || "U"}</span>}
+                <span className="max-w-28 truncate text-sm font-semibold">{user.name || "Account"}</span>
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-12 z-50 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                  <Link href="/create-event" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Create Event</Link>
+                  <Link href="/my-events" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Manage Events</Link>
+                  <Link href="/my-joined-events" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Joined Events</Link>
+                  <Link href="/profile" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Profile</Link>
+                  <button type="button" onClick={logout} className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">Logout</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href="/login" className="rounded-xl bg-teal-800 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-teal-700">Login</Link>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <button type="button" onClick={toggleTheme} aria-label="Toggle theme" className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
+          <button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? "Close menu" : "Open menu"} className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">{mobileOpen ? <X size={19} /> : <Menu size={19} />}</button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950 md:hidden">
+          <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
+            <Link href="/events" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800">Upcoming Events</Link>
+            {user ? <>
+              <Link href="/create-event" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Create Event</Link>
+              <Link href="/my-events" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Manage Events</Link>
+              <Link href="/my-joined-events" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Joined Events</Link>
+              <Link href="/profile" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Profile</Link>
+              <button onClick={logout} className="rounded-lg px-3 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">Logout</button>
+            </> : <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm font-bold text-teal-800 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/40">Login</Link>}
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="mt-auto border-t border-slate-800 bg-slate-950 text-slate-300">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        <div>
+          <h2 className="text-lg font-extrabold text-white">Shohojogi</h2>
+          <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">A community platform for people who want to make local social change happen together.</p>
+        </div>
+        <div>
+          <h3 className="font-bold text-white">Explore</h3>
+          <div className="mt-3 flex flex-col gap-2 text-sm"><Link href="/events" className="hover:text-amber-300">Upcoming Events</Link><Link href="/create-event" className="hover:text-amber-300">Create an Event</Link><Link href="/profile" className="hover:text-amber-300">My Profile</Link></div>
+        </div>
+        <div>
+          <h3 className="font-bold text-white">Get Involved</h3>
+          <p className="mt-3 text-sm leading-6 text-slate-400">Organize a local drive, invite neighbours, and help build a stronger community.</p>
+          <p className="mt-2 text-sm text-slate-400">For event-specific questions, contact the event organizer.</p>
+        </div>
+        <div>
+          <h3 className="font-bold text-white">Follow Shohojogi</h3>
+          <div className="mt-3 flex gap-3">
+            <a href="https://x.com/" target="_blank" rel="noreferrer" aria-label="X" className="rounded-lg border border-slate-700 p-2 hover:border-amber-400 hover:text-amber-300"><span className="px-0.5 font-bold">𝕏</span></a>
+            <a href="https://github.com/" target="_blank" rel="noreferrer" aria-label="GitHub" className="rounded-lg border border-slate-700 p-2 hover:border-amber-400 hover:text-amber-300"><span className="text-xs font-extrabold">GH</span></a>
+            <a href="https://linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="rounded-lg border border-slate-700 p-2 hover:border-amber-400 hover:text-amber-300"><span className="text-sm font-extrabold">in</span></a>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-500">© {2026} Shohojogi. Show up. Serve together.</div>
+    </footer>
+  );
+}
+
+function SiteHeaderFallback() {
+  return (
+    <header
+      aria-hidden="true"
+      className="sticky top-0 z-40 h-[65px] shrink-0 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/95"
+    />
+  );
+}
+
+function SiteFooterFallback() {
+  return (
+    <footer
+      aria-hidden="true"
+      className="mt-auto min-h-[290px] border-t border-slate-800 bg-slate-950"
+    >
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="space-y-3">
+            <div className="h-5 w-28 rounded bg-slate-800" />
+            <div className="h-3 w-full max-w-48 rounded bg-slate-800" />
+            <div className="h-3 w-5/6 max-w-44 rounded bg-slate-800" />
+            <div className="h-3 w-2/3 max-w-36 rounded bg-slate-800" />
+          </div>
+        ))}
+      </div>
+      <div className="h-10 border-t border-slate-800" />
+    </footer>
+  );
+}
+
+export function SiteShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Suspense fallback={<SiteHeaderFallback />}>
+        <SiteHeader />
+      </Suspense>
+      {children}
+      <Suspense fallback={<SiteFooterFallback />}>
+        <SiteFooter />
+      </Suspense>
+    </div>
+  );
+}
