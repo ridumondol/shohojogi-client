@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shohojogi - Community Social Events Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            teal: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0F766E', // Primary Teal
+              800: '#115e59',
+              900: '#134e4a',
+            },
+            amber: {
+              400: '#fbbf24',
+              500: '#F59E0B', // Warm Amber
+              600: '#d97706',
+            }
+          },
+          fontFamily: {
+            heading: ['Plus Jakarta Sans', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <script>
+    (function () {
+      function getPreferredTheme() {
+        try {
+          var stored = localStorage.getItem("theme");
+          if (stored === "dark" || stored === "light") {
+            return stored;
+          }
+          if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+            return "light";
+          }
+        } catch (e) {}
+        return "dark";
+      }
+
+      function syncTheme(theme) {
+        document.documentElement.classList.toggle("dark", theme === "dark");
+      }
+
+      syncTheme(getPreferredTheme());
+
+      window.addEventListener("storage", function (event) {
+        if (event.key === "theme") {
+          syncTheme(event.newValue || getPreferredTheme());
+        }
+      });
+
+      window.addEventListener("message", function (event) {
+        if (event.origin === window.location.origin && event.data?.type === "THEME_CHANGE") {
+          syncTheme(event.data.theme);
+        }
+      });
+    })();
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+    .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    
+    /* Glassmorphism & Micro-animations */
+    .glass-nav { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .toast-anim { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUp { from { transform: translateY(100%) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 selection:bg-teal-500 selection:text-white">
+
+  <!-- MAIN NAVIGATION BAR -->
+  <nav class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 glass-nav border-b border-slate-200 dark:border-slate-800 transition-colors">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          
+          <!-- Logo & Name -->
+          <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateTo('home')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-800 to-teal-600 flex items-center justify-center text-amber-400 font-black text-xl shadow-md">
+              <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <span class="font-bold text-xl tracking-tight text-teal-800 dark:text-teal-400 font-heading">Shohojogi</span>
+              <span class="block text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wider -mt-1">সহযোগী • Serve Together</span>
+            </div>
+          </div>
+
+          <!-- Desktop Navigation Links -->
+          <div class="hidden md:flex items-center space-x-8 text-sm font-medium">
+            <button onclick="navigateTo('home')" class="nav-link text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-400 transition">Home</button>
+            <button onclick="navigateTo('events')" class="nav-link text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-400 transition">Upcoming Events</button>
+            <button onclick="navigateTo('create-event')" class="nav-link text-slate-700 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-400 transition">Create Event</button>
+          </div>
+
+          <!-- Right-side Action Group -->
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            
+            <!-- Theme Toggle Button (Light/Dark Mode) -->
+            <button
+              onclick="toggleDarkMode()"
+              id="theme-toggle-btn"
+              type="button"
+              class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 dark:focus-visible:ring-teal-400"
+              aria-label="Switch to dark mode"
+              title="Switch to dark mode"
+            >
+              <i data-lucide="sun" id="theme-icon-sun" class="w-5 h-5 hidden text-amber-400"></i>
+              <i data-lucide="moon" id="theme-icon-moon" class="w-5 h-5 hidden text-slate-600 dark:text-slate-300"></i>
+            </button>
+
+            <!-- Desktop Auth Actions / Profile Dropdown -->
+            <div class="hidden md:flex items-center space-x-3">
+              
+              <!-- LOGGED OUT STATE -->
+              <div id="nav-logged-out" class="hidden flex items-center space-x-3">
+                <button onclick="navigateTo('login')" class="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-teal-700 px-3 py-2 transition">Login</button>
+                <button onclick="navigateTo('register')" class="bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm hover:shadow">Register</button>
+              </div>
+
+              <!-- LOGGED IN STATE -->
+              <div id="nav-logged-in" class="relative">
+                <div class="flex items-center space-x-3">
+                  <button onclick="toggleProfileDropdown()" class="relative group flex items-center space-x-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 rounded-full" aria-label="Open user profile menu">
+                    <div class="relative">
+                      <img id="user-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" alt="Tanvir Ahmed" class="w-10 h-10 rounded-full object-cover ring-2 ring-teal-600/30 dark:ring-teal-400/40" />
+                      <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+                    </div>
+                    <!-- Avatar Hover Tooltip -->
+                    <div class="absolute right-0 top-12 hidden group-hover:block bg-slate-900 text-white text-xs py-1 px-2.5 rounded shadow-lg whitespace-nowrap z-50">
+                      <span id="tooltip-user-name">Tanvir Ahmed</span> (Organizer)
+                    </div>
+                  </button>
+                </div>
+
+                <!-- Profile Dropdown Menu -->
+                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 py-2 z-50 text-sm">
+                  <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                    <p class="font-semibold text-slate-800 dark:text-slate-100" id="dropdown-user-name">Tanvir Ahmed</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate" id="dropdown-user-email">tanvir.mirpur@shohojogi.org</p>
+                  </div>
+                  <div class="py-1">
+                    <button onclick="navigateTo('create-event'); toggleProfileDropdown()" class="w-full text-left px-4 py-2 hover:bg-teal-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2.5">
+                      <i data-lucide="plus-circle" class="w-4 h-4 text-teal-600"></i>
+                      <span>Create Event</span>
+                    </button>
+                    <button onclick="navigateTo('manage-events'); toggleProfileDropdown()" class="w-full text-left px-4 py-2 hover:bg-teal-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2.5">
+                      <i data-lucide="folder-kanban" class="w-4 h-4 text-teal-600"></i>
+                      <span>Manage My Events</span>
+                    </button>
+                    <button onclick="navigateTo('joined-events'); toggleProfileDropdown()" class="w-full text-left px-4 py-2 hover:bg-teal-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2.5">
+                      <i data-lucide="calendar-check" class="w-4 h-4 text-teal-600"></i>
+                      <span>Joined Events</span>
+                    </button>
+                    <button onclick="navigateTo('profile'); toggleProfileDropdown()" class="w-full text-left px-4 py-2 hover:bg-teal-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center space-x-2.5">
+                      <i data-lucide="user" class="w-4 h-4 text-teal-600"></i>
+                      <span>Profile & Impact</span>
+                    </button>
+                  </div>
+                  <div class="border-t border-slate-100 dark:border-slate-800 pt-1">
+                    <button onclick="handleLogout()" class="w-full text-left px-4 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center space-x-2.5">
+                      <i data-lucide="log-out" class="w-4 h-4"></i>
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile Hamburger Menu Button -->
+            <div class="md:hidden flex items-center">
+              <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600" aria-label="Toggle navigation menu">
+                <i data-lucide="menu" id="mobile-menu-icon" class="w-6 h-6"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Nav Drawer -->
+      <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-2 pb-4 space-y-2 text-base font-medium">
+        <button onclick="navigateTo('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Home</button>
+        <button onclick="navigateTo('events'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Upcoming Events</button>
+        <button onclick="navigateTo('create-event'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Create Event</button>
+        
+        <div id="mobile-auth-section" class="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="navigateTo('profile'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Profile & Impact</button>
+          <button onclick="navigateTo('manage-events'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Manage My Events</button>
+          <button onclick="navigateTo('joined-events'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">Joined Events</button>
+          <button onclick="handleLogout(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 rounded-lg text-rose-600 font-semibold">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENT APP VIEWS -->
+    <main id="app-content" class="flex-grow">
+      <!-- Dynamic Content Rendered Here by JS Router -->
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gradient-to-br from-teal-950 via-slate-950 to-teal-900 text-slate-300 mt-20 border-t border-teal-900/40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+          
+          <!-- Column 1: Brand & Mission -->
+          <div class="space-y-4">
+            <div class="flex items-center space-x-3">
+              <div class="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center text-amber-400 font-bold text-lg">
+                <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+              </div>
+              <span class="font-bold text-2xl tracking-tight text-white font-heading">Shohojogi</span>
+            </div>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Empowering local communities across Bangladesh to serve together. From winter warmth drives in Mirpur to river cleanups in Chattogram.
+            </p>
+            <div class="flex flex-wrap items-center gap-2.5 pt-2">
+              <a href="https://facebook.com/shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </a>
+              <a href="https://x.com/shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on X" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </a>
+              <a href="https://instagram.com/shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              </a>
+              <a href="https://linkedin.com/company/shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on LinkedIn" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451c.979 0 1.778-.773 1.778-1.729V1.73C24 .774 23.205 0 22.225 0z"/></svg>
+              </a>
+              <a href="https://youtube.com/@shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on YouTube" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              </a>
+              <a href="https://github.com/shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on GitHub" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <!-- Column 2: Quick Links -->
+          <div>
+            <h4 class="text-white font-semibold mb-4 text-base tracking-wide">Quick Navigation</h4>
+            <ul class="space-y-2.5 text-sm">
+              <li><button onclick="navigateTo('home')" class="hover:text-amber-400 transition">Home</button></li>
+              <li><button onclick="navigateTo('events')" class="hover:text-amber-400 transition">Upcoming Community Events</button></li>
+              <li><button onclick="navigateTo('create-event')" class="hover:text-amber-400 transition">Organize an Event</button></li>
+              <li><button onclick="navigateTo('joined-events')" class="hover:text-amber-400 transition">My Volunteer History</button></li>
+              <li><button onclick="navigateTo('profile')" class="hover:text-amber-400 transition">Impact Badges & Leaderboard</button></li>
+            </ul>
+          </div>
+
+          <!-- Column 3: Contact Info -->
+          <div>
+            <h4 class="text-white font-semibold mb-4 text-base tracking-wide">Dhaka HQ</h4>
+            <ul class="space-y-3 text-sm text-slate-400">
+              <li class="flex items-start space-x-2.5">
+                <i data-lucide="map-pin" class="w-4 h-4 text-amber-400 mt-1 flex-shrink-0"></i>
+                <span>House 42, Road 11, Block D, Mirpur 10, Dhaka 1216, Bangladesh</span>
+              </li>
+              <li class="flex items-center space-x-2.5">
+                <i data-lucide="mail" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
+                <span>contact@shohojogi.org.bd</span>
+              </li>
+              <li class="flex items-center space-x-2.5">
+                <i data-lucide="phone" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
+                <span>+880 1711-987654</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Column 4: Newsletter -->
+          <div>
+            <h4 class="text-white font-semibold mb-4 text-base tracking-wide">Stay Updated</h4>
+            <p class="text-xs text-slate-400 mb-3">Get weekly alerts for social drives near your city.</p>
+            <form onsubmit="handleFooterSubscribe(event)" class="space-y-2">
+              <input type="email" placeholder="Enter your email" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-xl text-sm transition shadow">Subscribe Now</button>
+            </form>
+          </div>
+
+        </div>
+
+        <div class="border-t border-slate-900 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 space-y-3 md:space-y-0">
+          <p>&copy; 2026 Shohojogi Foundation. All rights reserved.</p>
+          <div class="flex space-x-6">
+            <a href="#" class="hover:text-slate-300">Privacy Policy</a>
+            <a href="#" class="hover:text-slate-300">Terms of Service</a>
+            <a href="#" class="hover:text-slate-300">Volunteer Guidelines</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  <!-- TOAST NOTIFICATION SYSTEM CONTAINER -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 max-w-sm pointer-events-none"></div>
+
+  <!-- EDIT / UPDATE EVENT MODAL CONTAINER -->
+  <div id="modal-container" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"></div>
+
+  <!-- APPLICATION LOGIC & DYNAMIC ROUTER SCRIPT -->
+  <script>
+    // GLOBAL STATE DATABASE
+    const state = {
+      isLoggedIn: false,
+      user: {
+        name: "",
+        email: "",
+        avatar: "",
+        location: "",
+        createdCount: 0,
+        joinedCount: 0,
+        hours: 0,
+        level: "Community Volunteer",
+        nextLevelHours: 10,
+        badges: []
+      },
+      currentView: 'home',
+      selectedCategory: 'All',
+      searchQuery: '',
+      isSkeletonLoading: false,
+      
+      // Event data is loaded from the API; no demo events are shown.
+      events: [],
+      featuredEvents: [],
+      myEvents: [],
+      joinedEvents: []
+    };
+
+    // ROUTER INITIALIZATION
+    function navigateTo(viewId, param = null) {
+      state.currentView = viewId;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderApp(param);
+    }
+
+    // MAIN RENDERER
+    function renderApp(param = null) {
+      const content = document.getElementById('app-content');
+      
+      // Sync Navbar State
+      const loggedOutNav = document.getElementById('nav-logged-out');
+      const loggedInNav = document.getElementById('nav-logged-in');
+      const mobileAuth = document.getElementById('mobile-auth-section');
+
+      if (state.isLoggedIn) {
+        loggedOutNav.classList.add('hidden');
+        loggedInNav.classList.remove('hidden');
+        mobileAuth.classList.remove('hidden');
+        document.getElementById('user-avatar-img').src = state.user.avatar;
+        document.getElementById('tooltip-user-name').innerText = state.user.name;
+        document.getElementById('dropdown-user-name').innerText = state.user.name;
+        document.getElementById('dropdown-user-email').innerText = state.user.email;
+      } else {
+        loggedOutNav.classList.remove('hidden');
+        loggedInNav.classList.add('hidden');
+        mobileAuth.classList.add('hidden');
+      }
+
+      // Render Screen HTML based on currentView
+      switch (state.currentView) {
+        case 'home':
+          content.innerHTML = renderHomeScreen();
+          break;
+        case 'events':
+          content.innerHTML = renderEventsScreen();
+          break;
+        case 'event-details':
+          content.innerHTML = renderEventDetailsScreen(param || 'ev-1');
+          break;
+        case 'create-event':
+          content.innerHTML = renderCreateEventScreen();
+          break;
+        case 'manage-events':
+          content.innerHTML = renderManageEventsScreen();
+          break;
+        case 'joined-events':
+          content.innerHTML = renderJoinedEventsScreen();
+          break;
+        case 'profile':
+          content.innerHTML = renderProfileScreen();
+          break;
+        case 'login':
+          content.innerHTML = renderLoginScreen();
+          break;
+        case 'register':
+          content.innerHTML = renderRegisterScreen();
+          break;
+        case '404':
+        default:
+          content.innerHTML = render404Screen();
+          break;
+      }
+
+      lucide.createIcons();
+    }
+
+    // SCREEN 1: HOME SCREEN
+    function renderHomeScreen() {
+      const upcomingSlice = state.featuredEvents.slice(0, 6);
+
+      return `
+        <!-- HERO BANNER -->
+        <section class="relative overflow-hidden bg-gradient-to-b from-teal-900/10 via-transparent to-transparent py-12 md:py-20">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div class="space-y-6 text-center lg:text-left">
+                <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 text-xs font-semibold border border-teal-200 dark:border-teal-800">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span>Bangladesh's #1 Social Service Network</span>
+                </span>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white font-heading tracking-tight leading-tight">
+                  Show up. <br class="hidden sm:inline" />
+                  <span class="text-teal-700 dark:text-teal-400">Serve together.</span>
+                </h1>
+                <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Join hands with thousands of volunteers across Dhaka, Chattogram, Sylhet, and beyond. Organise warmth drives, environmental cleanups, and blood donation camps with ease.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-2">
+                  <button onclick="navigateTo('events')" class="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-bold px-7 py-3.5 rounded-2xl shadow-lg hover:shadow-teal-700/30 transition flex items-center justify-center space-x-2">
+                    <span>Explore Upcoming Events</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                  </button>
+                  <button onclick="navigateTo('create-event')" class="w-full sm:w-auto border-2 border-teal-700 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-900 font-bold px-7 py-3.5 rounded-2xl transition flex items-center justify-center space-x-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span>Create an Event</span>
+                  </button>
+                </div>
+
+                <!-- IMPACT STATS ROW -->
+                <div class="grid grid-cols-3 gap-4 pt-8 border-t border-slate-200 dark:border-slate-800">
+                  <div>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-teal-700 dark:text-teal-400 font-heading">1,200+</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Volunteers</p>
+                  </div>
+                  <div>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-amber-500 font-heading">340+</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Events Completed</p>
+                  </div>
+                  <div>
+                    <p class="text-2xl sm:text-3xl font-extrabold text-teal-700 dark:text-teal-400 font-heading">15,000+</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Lives Impacted</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hero Image Collage -->
+              <div class="relative">
+                <div class="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800">
+                  <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=900" alt="Volunteers in Bangladesh" class="w-full h-80 sm:h-96 object-cover" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-6">
+                    <div class="text-white">
+                      <span class="bg-amber-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded-md mb-2 inline-block">Winter Drive 2026</span>
+                      <p class="font-bold text-lg font-heading">Mirpur 10 Night Blanket Distribution</p>
+                      <p class="text-xs text-slate-300 flex items-center space-x-1 mt-1">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>Mirpur, Dhaka</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="absolute -bottom-6 -left-6 z-20 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 hidden sm:flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white">100% Verified Drives</p>
+                    <p class="text-[10px] text-slate-500">Community reviewed organizers</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4 FEATURE CARDS -->
+        <section class="py-16 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+              <h2 class="text-3xl font-bold font-heading text-slate-900 dark:text-white">How Shohojogi Works</h2>
+              <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Designed for volunteers, organizers, and local youth clubs across Bangladesh.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition">
+                <div class="w-12 h-12 rounded-xl bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-400 flex items-center justify-center mb-4">
+                  <i data-lucide="plus-circle" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white mb-2">Create Events</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Organize local drives in 2 minutes with customized location pins, schedules, and volunteer quotas.</p>
+              </div>
+
+              <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 flex items-center justify-center mb-4">
+                  <i data-lucide="user-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white mb-2">Join in 1-Click</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">RSVP instantly to tree plantations, blood drives, and food distributions near your neighborhood.</p>
+              </div>
+
+              <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition">
+                <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center mb-4">
+                  <i data-lucide="award" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white mb-2">Track Your Impact</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Earn community service badges, track volunteer hours, and share your social contribution portfolio.</p>
+              </div>
+
+              <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center mb-4">
+                  <i data-lucide="kanban" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white mb-2">Manage Easily</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Update schedules, view attendee lists, and handle volunteer logistics seamlessly from your desktop or phone.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RECENT UPCOMING EVENTS GRID -->
+        <section class="py-16">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10">
+              <div>
+                <h2 class="text-3xl font-bold font-heading text-slate-900 dark:text-white">Upcoming Events Near You</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Discover social development drives across Dhaka, Sylhet, and Chattogram.</p>
+              </div>
+              <button onclick="navigateTo('events')" class="mt-4 sm:mt-0 text-teal-700 dark:text-teal-400 hover:text-teal-800 font-bold text-sm flex items-center space-x-1">
+                <span>View All Events</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- 6 CARDS GRID (3 Col Desktop, 2 Tablet, 1 Mobile) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${upcomingSlice.map(event => renderEventCardHTML(event)).join('')}
+            </div>
+          </div>
+        </section>
+
+        <!-- UNIFORM COMMUNITY GALLERY GRID -->
+        <section class="py-16 bg-slate-100 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+              <h2 class="text-3xl font-bold font-heading text-slate-900 dark:text-white">Community Action Gallery</h2>
+              <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Real moments of warmth and togetherness captured during our recent events.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="relative group rounded-2xl overflow-hidden aspect-square border border-slate-200 dark:border-slate-800 shadow">
+                <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=400" alt="Blanket Distribution Mirpur" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-4 text-center text-white">
+                  <div>
+                    <p class="font-bold text-sm">Blanket Drive</p>
+                    <p class="text-[11px] text-slate-300">Mirpur 10, Dhaka</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="relative group rounded-2xl overflow-hidden aspect-square border border-slate-200 dark:border-slate-800 shadow">
+                <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=400" alt="Tree Plantation Agrabad" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-4 text-center text-white">
+                  <div>
+                    <p class="font-bold text-sm">Tree Plantation</p>
+                    <p class="text-[11px] text-slate-300">Agrabad, Chattogram</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="relative group rounded-2xl overflow-hidden aspect-square border border-slate-200 dark:border-slate-800 shadow">
+                <img src="https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&q=80&w=400" alt="Canal Cleanup Mohammadpur" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-4 text-center text-white">
+                  <div>
+                    <p class="font-bold text-sm">Canal Cleanup</p>
+                    <p class="text-[11px] text-slate-300">Mohammadpur, Dhaka</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="relative group rounded-2xl overflow-hidden aspect-square border border-slate-200 dark:border-slate-800 shadow">
+                <img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&q=80&w=400" alt="Food Relief Uttara" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-4 text-center text-white">
+                  <div>
+                    <p class="font-bold text-sm">Food Relief Drive</p>
+                    <p class="text-[11px] text-slate-300">Uttara, Dhaka</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    // EVENT CARD REUSABLE HTML GENERATOR
+    function renderEventCardHTML(event) {
+      const getBadgeStyle = (cat) => {
+        switch(cat) {
+          case 'Cleanup': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+          case 'Donation': return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
+          case 'Plantation': return 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300';
+          case 'Blood Donation': return 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
+          case 'Food Drive': return 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300';
+          default: return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300';
+        }
+      };
+
+      return `
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+          <div>
+            <div class="relative aspect-video overflow-hidden">
+              <img src="${event.image}" alt="${event.title}" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
+              <span class="absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full shadow-sm ${getBadgeStyle(event.category)}">
+                ${event.category}
+              </span>
+            </div>
+
+            <div class="p-5 space-y-3">
+              <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white line-clamp-1 hover:text-teal-700 transition cursor-pointer" onclick="navigateTo('event-details', '${event.id}')">
+                ${event.title}
+              </h3>
+
+              <div class="space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="calendar" class="w-4 h-4 text-teal-600 flex-shrink-0"></i>
+                  <span>${event.date} • ${event.time}</span>
+                </div>
+                <div class="flex items-start space-x-2">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5"></i>
+                  <span class="line-clamp-1">${event.location}</span>
+                </div>
+              </div>
+
+              <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 pt-1 leading-relaxed">
+                ${event.description}
+              </p>
+            </div>
+          </div>
+
+          <div class="px-5 pb-5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <img src="${event.organizerAvatar}" alt="Organizer" class="w-6 h-6 rounded-full object-cover" />
+              <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate max-w-[110px]">${event.organizer.split(' ')[0]}</span>
+            </div>
+
+            <button onclick="navigateTo('event-details', '${event.id}')" class="bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm">
+              View Event
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // SCREEN 2: UPCOMING EVENTS (With Live Search & Category Filter)
+    function renderEventsScreen() {
+      let filtered = state.events.filter(e => {
+        const matchesCategory = state.selectedCategory === 'All' || e.category === state.selectedCategory;
+        const matchesSearch = e.title.toLowerCase().includes(state.searchQuery.toLowerCase()) || 
+                              e.location.toLowerCase().includes(state.searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      const categories = ['All', 'Cleanup', 'Plantation', 'Donation', 'Food Drive', 'Blood Donation', 'Health Camp'];
+
+      return `
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <!-- Page Header -->
+          <div class="mb-8">
+            <h1 class="text-3xl font-extrabold font-heading text-slate-900 dark:text-white">Upcoming Community Events</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Browse verified social development activities across Bangladesh.</p>
+          </div>
+
+          <!-- Controls Bar: Search + Category Filter + Skeleton Toggle -->
+          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+            
+            <!-- Search Input -->
+            <div class="relative flex-grow max-w-md">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+              <input type="text" id="event-search-input" value="${state.searchQuery}" oninput="handleSearchChange(event)" placeholder="Search by title or area (e.g., Mirpur, Sylhet)..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600" />
+            </div>
+
+            <div class="flex items-center space-x-3 overflow-x-auto pb-2 md:pb-0">
+              <!-- Category Filter Dropdown -->
+              <div class="relative">
+                <select onchange="handleCategoryFilter(event)" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-semibold px-3 py-2 rounded-xl outline-none focus:ring-2 focus:ring-teal-600">
+                  ${categories.map(c => `<option value="${c}" ${state.selectedCategory === c ? 'selected' : ''}>${c === 'All' ? 'All Event Types' : c}</option>`).join('')}
+                </select>
+              </div>
+
+              <!-- Skeleton Toggle simulator -->
+              <button onclick="toggleSkeletonLoading()" class="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center space-x-1 whitespace-nowrap">
+                <i data-lucide="loader" class="w-3.5 h-3.5 ${state.isSkeletonLoading ? 'animate-spin text-amber-500' : ''}"></i>
+                <span>${state.isSkeletonLoading ? 'Skeleton Loading ON' : 'Toggle Skeleton State'}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- SKELETON LOADER STATE OR EVENTS GRID -->
+          ${state.isSkeletonLoading ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+              ${[1,2,3,4,5,6].map(() => `
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-4">
+                  <div class="h-44 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                  <div class="h-5 bg-slate-200 dark:bg-slate-800 rounded w-3/4"></div>
+                  <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
+                  <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                </div>
+              `).join('')}
+            </div>
+          ` : filtered.length === 0 ? `
+            <!-- EMPTY SEARCH STATE -->
+            <div class="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 max-w-lg mx-auto">
+              <div class="w-16 h-16 bg-amber-100 dark:bg-amber-950 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="search-x" class="w-8 h-8"></i>
+              </div>
+              <h3 class="font-bold text-xl font-heading text-slate-900 dark:text-white">No Upcoming Events Found</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">We couldn't find any events matching "${state.searchQuery}". Try selecting another category or clear search.</p>
+              <button onclick="clearSearchFilter()" class="mt-6 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition">
+                Reset Filters
+              </button>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${filtered.map(event => renderEventCardHTML(event)).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // SCREEN 3: EVENT DETAILS (With Interactive Join Flow)
+    function renderEventDetailsScreen(eventId) {
+      const event = state.events.find(e => e.id === eventId) || state.events[0];
+      const related = state.events.filter(e => e.id !== event.id).slice(0, 3);
+
+      return `
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          
+          <!-- Back Link -->
+          <button onclick="navigateTo('events')" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-500 hover:text-teal-700 mb-6 transition">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            <span>Back to Upcoming Events</span>
+          </button>
+
+          <!-- Main Event Hero Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl mb-12">
+            
+            <div class="relative h-72 sm:h-96 w-full">
+              <img src="${event.image}" alt="${event.title}" class="w-full h-full object-cover" />
+              <div class="absolute top-4 left-4">
+                <span class="bg-amber-500 text-slate-950 font-extrabold text-xs px-3 py-1.5 rounded-full shadow-lg uppercase tracking-wider">
+                  ${event.category}
+                </span>
+              </div>
+            </div>
+
+            <div class="p-6 sm:p-10">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Details -->
+                <div class="lg:col-span-2 space-y-6">
+                  <div>
+                    <h1 class="text-2xl sm:text-4xl font-extrabold font-heading text-slate-900 dark:text-white leading-tight">
+                      ${event.title}
+                    </h1>
+                    <div class="flex items-center space-x-3 mt-4">
+                      <img src="${event.organizerAvatar}" alt="Organizer" class="w-10 h-10 rounded-full object-cover ring-2 ring-teal-600" />
+                      <div>
+                        <p class="text-xs text-slate-400">Organized by</p>
+                        <p class="text-sm font-bold text-slate-800 dark:text-slate-200">${event.organizer}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="border-t border-b border-slate-100 dark:border-slate-800 py-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex items-start space-x-3">
+                      <div class="p-2.5 bg-teal-50 dark:bg-slate-800 text-teal-700 dark:text-teal-400 rounded-xl">
+                        <i data-lucide="calendar" class="w-5 h-5"></i>
+                      </div>
+                      <div>
+                        <p class="text-xs text-slate-400">Date & Time</p>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">${event.date}</p>
+                        <p class="text-xs text-slate-500">${event.time}</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                      <div class="p-2.5 bg-amber-50 dark:bg-slate-800 text-amber-500 rounded-xl">
+                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                      </div>
+                      <div>
+                        <p class="text-xs text-slate-400">Event Location</p>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">${event.location}</p>
+                        <a href="https://maps.google.com" target="_blank" class="text-[11px] text-teal-600 hover:underline inline-flex items-center space-x-1 mt-0.5">
+                          <span>View on Google Maps</span>
+                          <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="space-y-3">
+                    <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white">About this Community Drive</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      ${event.description}
+                    </p>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      Volunteers are requested to arrive 15 minutes prior to assembly. Safety equipment, certificates of appreciation, and light refreshments will be provided on site.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Right Action Panel -->
+                <div class="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between h-full space-y-6">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-xs font-semibold text-slate-500">Volunteers Joined</span>
+                      <span class="text-xs font-bold text-teal-600 bg-teal-100 dark:bg-teal-950 px-2.5 py-0.5 rounded-full">${event.attendeesCount} / 100 Seats</span>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden mb-6">
+                      <div class="bg-teal-700 h-full rounded-full" style="width: ${(event.attendeesCount / 100) * 100}%"></div>
+                    </div>
+
+                    <div class="space-y-3 text-xs text-slate-600 dark:text-slate-400">
+                      <div class="flex items-center space-x-2">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Instant RSVP Confirmation</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Volunteer Hours Credit (4 Hours)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- INTERACTIVE JOIN BUTTON -->
+                  <div id="join-btn-container">
+                    ${event.joined ? `
+                      <button onclick="handleLeaveEvent('${event.id}')" class="w-full bg-emerald-600 hover:bg-rose-600 text-white font-bold py-3.5 rounded-2xl transition flex items-center justify-center space-x-2 group">
+                        <i data-lucide="check" class="w-4 h-4 group-hover:hidden"></i>
+                        <i data-lucide="user-minus" class="w-4 h-4 hidden group-hover:inline"></i>
+                        <span class="group-hover:hidden">You've Joined This Event</span>
+                        <span class="hidden group-hover:inline">Cancel RSVP</span>
+                      </button>
+                    ` : `
+                      <button onclick="handleJoinEvent('${event.id}')" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3.5 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                        <i data-lucide="heart" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+                        <span>Join Event Now</span>
+                      </button>
+                    `}
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Related Events Section -->
+          <div>
+            <h3 class="text-xl font-bold font-heading text-slate-900 dark:text-white mb-6">Other Drives You Might Like</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              ${related.map(r => renderEventCardHTML(r)).join('')}
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // SCREEN 4: CREATE EVENT (Private Form with Validation)
+    function renderCreateEventScreen() {
+      if (!state.isLoggedIn) {
+        return `
+          <div class="max-w-md mx-auto my-16 p-8 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-center shadow-xl">
+            <i data-lucide="lock" class="w-12 h-12 text-amber-500 mx-auto mb-4"></i>
+            <h2 class="text-2xl font-bold font-heading text-slate-900 dark:text-white">Authentication Required</h2>
+            <p class="text-xs text-slate-500 mt-2">You must be logged in to create and organize community events in Bangladesh.</p>
+            <button onclick="navigateTo('login')" class="mt-6 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 py-3 rounded-xl transition w-full">
+              Login to Continue
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+          <div class="mb-8">
+            <h1 class="text-3xl font-extrabold font-heading text-slate-900 dark:text-white">Organize a Social Event</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Fill out event details to invite volunteers from your area.</p>
+          </div>
+
+          <form onsubmit="handleCreateEventSubmit(event)" class="bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
+            
+            <!-- Event Title -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Event Title *</label>
+              <input type="text" id="create-title" required placeholder="e.g. Winter Blanket Distribution – Mirpur 10" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600" />
+            </div>
+
+            <!-- Event Category & Date Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Event Category *</label>
+                <select id="create-category" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600">
+                  <option value="Donation">Donation Drive</option>
+                  <option value="Cleanup">Cleanup Drive</option>
+                  <option value="Plantation">Tree Plantation</option>
+                  <option value="Blood Donation">Blood Donation</option>
+                  <option value="Food Drive">Food Drive</option>
+                  <option value="Health Camp">Free Health Camp</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Event Date (Future Date Only) *</label>
+                <input type="date" id="create-date" min="${new Date().toISOString().slice(0, 10)}" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600" />
+              </div>
+            </div>
+
+            <!-- Location & Image URL -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Full Address & Landmark *</label>
+                <input type="text" id="create-location" required placeholder="e.g. Ramchandrapur Canal, Mohammadpur, Dhaka" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Banner Image URL *</label>
+                <input type="url" id="create-image" required oninput="previewImage(event)" placeholder="https://images.unsplash.com/..." class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600" />
+              </div>
+            </div>
+
+            <!-- Image Live Preview -->
+            <div id="image-preview-container" class="hidden">
+              <span class="block text-xs text-slate-500 mb-1">Image Preview:</span>
+              <img id="image-preview-img" class="h-36 w-full object-cover rounded-xl border border-slate-200 dark:border-slate-800" src="" alt="Preview" />
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Event Description & Instructions *</label>
+              <textarea id="create-description" required rows="4" placeholder="Describe the goal, required volunteer items, and gathering schedule..." class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-600"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-4 flex items-center justify-end space-x-3">
+              <button type="button" onclick="navigateTo('events')" class="px-5 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400">Cancel</button>
+              <button type="submit" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-8 py-3 rounded-xl text-xs transition shadow-md">
+                Publish Event Now
+              </button>
+            </div>
+
+          </form>
+        </div>
+      `;
+    }
+
+    // SCREEN 5: MANAGE EVENTS (Table / Card view with Edit Modal & Delete confirmation)
+    function renderManageEventsScreen() {
+      const myEvents = state.myEvents;
+
+      return `
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
+            <div>
+              <h1 class="text-3xl font-extrabold font-heading text-slate-900 dark:text-white">Manage My Organized Events</h1>
+              <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Edit schedules, review volunteer RSVPs, or cancel past events.</p>
+            </div>
+            <button onclick="navigateTo('create-event')" class="mt-4 sm:mt-0 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Create New Event</span>
+            </button>
+          </div>
+
+          ${myEvents.length === 0 ? `
+            <div class="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 max-w-lg mx-auto">
+              <i data-lucide="folder-plus" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
+              <h3 class="font-bold text-lg text-slate-800 dark:text-slate-200">No Events Created Yet</h3>
+              <p class="text-xs text-slate-500 mt-1">Start hosting social drives in your local community today!</p>
+              <button onclick="navigateTo('create-event')" class="mt-4 bg-teal-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl">Create Event Now</button>
+            </div>
+          ` : `
+            <!-- Responsive Table (Desktop) / Card Grid (Mobile) -->
+            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl">
+              
+              <!-- DESKTOP TABLE -->
+              <div class="hidden md:block overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-950 text-slate-500 text-[11px] uppercase font-bold tracking-wider border-b border-slate-200 dark:border-slate-800">
+                      <th class="p-4">Event Details</th>
+                      <th class="p-4">Category</th>
+                      <th class="p-4">Date</th>
+                      <th class="p-4">Location</th>
+                      <th class="p-4">RSVPs</th>
+                      <th class="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    ${myEvents.map(ev => `
+                      <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition">
+                        <td class="p-4 flex items-center space-x-3">
+                          <img src="${ev.image}" alt="${ev.title}" class="w-12 h-12 rounded-xl object-cover" />
+                          <span class="font-bold text-slate-900 dark:text-white">${ev.title}</span>
+                        </td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full font-semibold bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300">${ev.category}</span></td>
+                        <td class="p-4 text-slate-600 dark:text-slate-300 font-mono">${ev.date}</td>
+                        <td class="p-4 text-slate-600 dark:text-slate-300 truncate max-w-[160px]">${ev.location}</td>
+                        <td class="p-4 font-bold text-teal-600">${ev.attendeesCount} Volunteers</td>
+                        <td class="p-4 text-right space-x-2">
+                          <button onclick="openEditModal('${ev.id}')" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-teal-100 hover:text-teal-700 text-slate-600 dark:text-slate-300 transition" title="Edit Event">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                          </button>
+                          <button onclick="openDeleteModal('${ev.id}')" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 hover:text-rose-600 text-slate-600 dark:text-slate-300 transition" title="Delete Event">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- MOBILE CARDS -->
+              <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800 p-4 space-y-4">
+                ${myEvents.map(ev => `
+                  <div class="pt-4 space-y-3">
+                    <div class="flex items-center space-x-3">
+                      <img src="${ev.image}" class="w-14 h-14 rounded-xl object-cover" />
+                      <div>
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white">${ev.title}</h4>
+                        <p class="text-[11px] text-slate-500">${ev.date} • ${ev.location}</p>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs pt-1">
+                      <span class="font-bold text-teal-600">${ev.attendeesCount} RSVPed</span>
+                      <div class="space-x-2">
+                        <button onclick="openEditModal('${ev.id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 font-bold">Edit</button>
+                        <button onclick="openDeleteModal('${ev.id}')" class="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-600 font-bold">Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // SCREEN 6: JOINED EVENTS
+    function renderJoinedEventsScreen() {
+      const joined = state.joinedEvents;
+
+      return `
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div class="mb-8">
+            <h1 class="text-3xl font-extrabold font-heading text-slate-900 dark:text-white">My Joined Events</h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Events you've committed to attend as a volunteer, sorted by date.</p>
+          </div>
+
+          ${joined.length === 0 ? `
+            <div class="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 max-w-lg mx-auto">
+              <i data-lucide="calendar-off" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
+              <h3 class="font-bold text-lg text-slate-800 dark:text-slate-200">No Joined Events Yet</h3>
+              <p class="text-xs text-slate-500 mt-1">Explore upcoming blanket drives, cleanups, and blood donations near you!</p>
+              <button onclick="navigateTo('events')" class="mt-4 bg-teal-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl">Browse Events</button>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${joined.map(ev => renderEventCardHTML(ev)).join('')}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    // SCREEN 7: PROFILE & IMPACT TRACKER
+    function renderProfileScreen() {
+      return `
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          
+          <!-- User Profile Header Card -->
+          <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl mb-8 flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+            <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
+              <img src="${state.user.avatar}" alt="${state.user.name}" class="w-24 h-24 rounded-full object-cover ring-4 ring-teal-600/30" />
+              <div>
+                <h1 class="text-2xl font-extrabold font-heading text-slate-900 dark:text-white">${state.user.name}</h1>
+                <p class="text-xs text-slate-500">${state.user.email} • ${state.user.location}</p>
+                <div class="mt-2 inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-xs font-bold">
+                  <i data-lucide="award" class="w-4 h-4"></i>
+                  <span>${state.user.level}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="flex space-x-6 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-4 md:pt-0 md:pl-8 text-center">
+              <div>
+                <span class="block text-2xl font-extrabold text-teal-700 dark:text-teal-400 font-heading">${state.myEvents.length}</span>
+                <span class="text-xs text-slate-500">Events Created</span>
+              </div>
+              <div>
+                <span class="block text-2xl font-extrabold text-amber-500 font-heading">${state.joinedEvents.length}</span>
+                <span class="text-xs text-slate-500 font-medium">Events Joined</span>
+              </div>
+              <div>
+                <span class="block text-2xl font-extrabold text-emerald-600 font-heading">${state.user.hours} hrs</span>
+                <span class="text-xs text-slate-500">Volunteered</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXTRA UNIQUE FEATURE: IMPACT TRACKER & BADGES CARD -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-2 bg-gradient-to-br from-teal-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-6">
+              
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xl font-bold font-heading">Volunteer Impact Tracker</h3>
+                  <p class="text-xs text-teal-200 mt-0.5">Level Progress towards Master Volunteer</p>
+                </div>
+                <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400">
+                  <i data-lucide="trending-up" class="w-6 h-6"></i>
+                </div>
+              </div>
+
+              <!-- Level Progress Bar -->
+              <div class="space-y-2">
+                <div class="flex justify-between text-xs font-semibold text-slate-300">
+                  <span>${state.user.hours} Total Hours</span>
+                  <span>Target: ${state.user.nextLevelHours} Hours</span>
+                </div>
+                <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-amber-400 to-teal-400 h-full rounded-full" style="width: ${(state.user.hours / state.user.nextLevelHours) * 100}%"></div>
+                </div>
+                <p class="text-[11px] text-teal-300">Complete 12 more volunteer hours to unlock "Master Change-Maker" status!</p>
+              </div>
+
+              <!-- Badges Earned Grid -->
+              <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Earned Community Badges</h4>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  ${state.user.badges.map(b => `
+                    <div class="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center space-x-2.5">
+                      <div class="p-2 rounded-xl ${b.bg} flex-shrink-0">
+                        <i data-lucide="${b.icon}" class="w-4 h-4"></i>
+                      </div>
+                      <span class="text-xs font-semibold truncate">${b.name}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+            </div>
+
+            <!-- EDIT PROFILE FORM -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+              <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white">Edit Profile Details</h3>
+              <form onsubmit="handleUpdateProfile(event)" class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Display Name</label>
+                  <input type="text" id="edit-profile-name" value="${state.user.name}" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                </div>
+                <div>
+                  <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">Avatar Image URL</label>
+                  <input type="url" id="edit-profile-avatar" value="${state.user.avatar}" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                </div>
+                <div>
+                  <label class="block font-medium text-slate-600 dark:text-slate-400 mb-1">City / Region</label>
+                  <input type="text" id="edit-profile-location" value="${state.user.location}" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                </div>
+                <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl transition mt-2">
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    // SCREEN 8: LOGIN & REGISTER SCREENS
+    function renderLoginScreen() {
+      return `
+        <div class="max-w-md mx-auto my-12 px-4">
+          <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl space-y-6">
+            
+            <div class="text-center">
+              <div class="w-12 h-12 bg-teal-700 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3 font-bold text-2xl">
+                <i data-lucide="heart-handshake" class="w-7 h-7"></i>
+              </div>
+              <h2 class="text-2xl font-bold font-heading text-slate-900 dark:text-white">Welcome Back</h2>
+              <p class="text-xs text-slate-500 mt-1">Log in to manage your volunteer events</p>
+            </div>
+
+            <form onsubmit="handleAuthLogin(event)" class="space-y-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                <input type="email" required placeholder="tanvir.mirpur@shohojogi.org" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-600" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Password</label>
+                <div class="relative">
+                  <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-600" />
+                  <button type="button" onclick="togglePasswordVisibility('login-pass')" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl transition shadow-md text-xs">
+                Sign In
+              </button>
+            </form>
+
+            <div class="relative flex items-center justify-center border-t border-slate-200 dark:border-slate-800 pt-4">
+              <span class="text-[10px] bg-white dark:bg-slate-900 px-2 text-slate-400 uppercase font-semibold">Or Continue With</span>
+            </div>
+
+            <button onclick="handleSocialAuth('Google')" class="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+              <span>Continue with Google</span>
+            </button>
+
+            <p class="text-center text-xs text-slate-500">
+              Don't have an account? <button onclick="navigateTo('register')" class="text-teal-700 dark:text-teal-400 font-bold hover:underline">Register here</button>
+            </p>
+
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRegisterScreen() {
+      return `
+        <div class="max-w-md mx-auto my-12 px-4">
+          <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl space-y-6">
+            
+            <div class="text-center">
+              <h2 class="text-2xl font-bold font-heading text-slate-900 dark:text-white">Join Shohojogi</h2>
+              <p class="text-xs text-slate-500 mt-1">Create an account to start serving together</p>
+            </div>
+
+            <form onsubmit="handleAuthRegister(event)" class="space-y-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
+                <input id="register-name" name="name" type="text" required maxlength="80" placeholder="e.g. Tanvir Ahmed" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
+                <input id="register-email" name="email" type="email" required placeholder="name@domain.com" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Profile Photo URL</label>
+                <input id="register-photo" name="photoURL" type="url" placeholder="https://example.com/photo.jpg" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Password *</label>
+                <input type="password" id="reg-pass" name="password" oninput="checkPasswordStrength(event)" required minlength="6" placeholder="At least 6 characters" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white" />
+                
+                <!-- LIVE PASSWORD RULE CHECKERS -->
+                <div class="mt-2 space-y-1 text-[11px]">
+                  <div id="rule-len" class="flex items-center space-x-1.5 text-slate-400">
+                    <i data-lucide="circle" class="w-3 h-3"></i> <span>At least 6 characters</span>
+                  </div>
+                  <div id="rule-upper" class="flex items-center space-x-1.5 text-slate-400">
+                    <i data-lucide="circle" class="w-3 h-3"></i> <span>At least one uppercase letter</span>
+                  </div>
+                  <div id="rule-lower" class="flex items-center space-x-1.5 text-slate-400">
+                    <i data-lucide="circle" class="w-3 h-3"></i> <span>At least one lowercase letter</span>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl transition shadow-md text-xs">
+                Create Account
+              </button>
+            </form>
+
+            <p class="text-center text-xs text-slate-500">
+              Already have an account? <button onclick="navigateTo('login')" class="text-teal-700 dark:text-teal-400 font-bold hover:underline">Log in</button>
+            </p>
+
+          </div>
+        </div>
+      `;
+    }
+
+    // SCREEN 9: UTILITY 404 SCREEN
+    function render404Screen() {
+      return `
+        <div class="max-w-md mx-auto my-20 p-8 text-center space-y-4">
+          <span class="text-6xl font-extrabold text-amber-500 font-heading">404</span>
+          <h2 class="text-2xl font-bold font-heading text-slate-900 dark:text-white">Page Not Found</h2>
+          <p class="text-xs text-slate-500">The community drive route you are looking for does not exist or has been archived.</p>
+          <button onclick="navigateTo('home')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 py-3 rounded-xl transition">
+            Return to Homepage
+          </button>
+        </div>
+      `;
+    }
+
+    // INTERACTION HANDLERS & MODAL LOGIC
+    function readAuthToken() {
+      try { return localStorage.getItem('token') || ''; } catch (error) { return ''; }
+    }
+
+    function readSavedUser() {
+      try {
+        const raw = localStorage.getItem('user');
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) { return null; }
+    }
+
+    async function loadApiState() {
+      const token = readAuthToken();
+      const savedUser = readSavedUser();
+      state.isLoggedIn = Boolean(token && savedUser);
+      if (state.isLoggedIn) {
+        state.user = { ...state.user, name: savedUser.name || '', email: savedUser.email || '', avatar: savedUser.photoURL || savedUser.avatar || '' };
+      }
+
+      const response = await fetch('/api/events');
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Could not load upcoming events.');
+
+      const joinedIds = new Set();
+      const mapEvent = event => ({
+        ...event,
+        id: String(event._id),
+        joined: joinedIds.has(String(event._id)),
+        createdByUser: Boolean(savedUser && event.organizerEmail === savedUser.email),
+        organizer: event.organizer || 'Community Organizer',
+        organizerAvatar: event.organizerAvatar || '',
+        time: event.time || 'Time to be announced',
+        attendeesCount: Number(event.attendeesCount || 0)
+      });
+
+      if (token) {
+        const [joinedResponse, myEventsResponse] = await Promise.all([
+          fetch('/api/events/my-joined-events', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/events/my-events', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        if (joinedResponse.ok) {
+          const joinedResult = await joinedResponse.json();
+          state.joinedEvents = (joinedResult.events || []).map(event => {
+            joinedIds.add(String(event._id));
+            return mapEvent(event);
+          });
+        } else {
+          state.joinedEvents = [];
+        }
+        if (myEventsResponse.ok) {
+          const myEventsResult = await myEventsResponse.json();
+          state.myEvents = (myEventsResult.events || []).map(mapEvent);
+        } else {
+          state.myEvents = [];
+        }
+        if (joinedResponse.status === 401 || myEventsResponse.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          state.isLoggedIn = false;
+          state.joinedEvents = [];
+          state.myEvents = [];
+        }
+      } else {
+        state.joinedEvents = [];
+        state.myEvents = [];
+      }
+
+      state.events = (result.events || []).map(mapEvent);
+      state.joinedEvents = state.joinedEvents.map(event => ({ ...event, joined: true }));
+
+      const featuredResponse = await fetch('/api/events/featured');
+      if (featuredResponse.ok) {
+        const featuredResult = await featuredResponse.json();
+        state.featuredEvents = (featuredResult.events || []).slice(0, 6).map(mapEvent);
+      } else {
+        state.featuredEvents = state.events.slice(0, 6);
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      state.isLoggedIn = false;
+      state.user = { ...state.user, name: '', email: '', avatar: '' };
+      state.events.forEach(event => { event.joined = false; event.createdByUser = false; });
+      showToast('Successfully logged out.', 'info');
+      navigateTo('home');
+    }
+
+    async function handleJoinEvent(eventId) {
+      const token = readAuthToken();
+      if (!token) {
+        localStorage.setItem('redirectAfterLogin', `event:${eventId}`);
+        showToast('Please log in to join this event.', 'error');
+        navigateTo('login');
+        return;
+      }
+      const event = state.events.find(item => String(item.id || item._id) === String(eventId));
+      if (!event) return;
+      try {
+        const response = await fetch(`/api/events/${eventId}/join`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not join this event.');
+        await loadApiState();
+        showToast(`Successfully joined "${event.title}"!`, 'success');
+        renderApp(eventId);
+      } catch (error) {
+        showToast(error.message || 'Could not join this event.', 'error');
+      }
+    }
+
+    async function handleLeaveEvent(eventId) {
+      const token = readAuthToken();
+      const event = state.events.find(item => String(item.id || item._id) === String(eventId));
+      if (!token || !event) return;
+      try {
+        const response = await fetch(`/api/events/${eventId}/join`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not cancel participation.');
+        await loadApiState();
+        showToast(`Cancelled RSVP for "${event.title}".`, 'info');
+        renderApp(eventId);
+      } catch (error) {
+        showToast(error.message || 'Could not cancel participation.', 'error');
+      }
+    }
+
+
+    async function handleCreateEventSubmit(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('create-title').value.trim();
+      const category = document.getElementById('create-category').value;
+      const date = document.getElementById('create-date').value;
+      const location = document.getElementById('create-location').value.trim();
+      const image = document.getElementById('create-image').value.trim();
+      const description = document.getElementById('create-description').value.trim();
+
+      const submitButton = e.target.querySelector('button[type="submit"]');
+      if (!date || date <= new Date().toISOString().slice(0, 10)) {
+        showToast('Choose a future event date.', 'error');
+        return;
+      }
+
+      const eventData = {
+        title,
+        category,
+        date,
+        location,
+        image,
+        description,
+        organizer: state.user.name,
+        organizerAvatar: state.user.avatar
+      };
+
+      try {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Publishing...';
+
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${readAuthToken()}`
+          },
+          body: JSON.stringify(eventData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'Event creation failed!');
+        }
+
+        await loadApiState();
+        showToast('Community event created successfully!', 'success');
+        navigateTo('manage-events');
+
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || 'Something went wrong!', 'error');
+
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Publish Event Now';
+      }
+    }
+
+
+    function previewImage(e) {
+      const url = e.target.value;
+      const container = document.getElementById('image-preview-container');
+      const img = document.getElementById('image-preview-img');
+      if (url.length > 10) {
+        img.src = url;
+        container.classList.remove('hidden');
+      } else {
+        container.classList.add('hidden');
+      }
+    }
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[char]);
+    }
+
+    function openEditModal(eventId) {
+      const ev = state.events.find(
+        e => (e.id || e._id) === eventId
+      );
+
+      if (!ev) return;
+
+      const modal = document.getElementById('modal-container');
+
+      modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
+
+          <h3 class="font-bold text-lg text-slate-900 dark:text-white">
+            Edit Event Details
+          </h3>
+
+          <div>
+            <label class="block font-semibold mb-1">Title</label>
+            <input id="edit-ev-title" type="text"
+              value="${escapeHTML(ev.title || '')}"
+              class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-950 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Category</label>
+            <select id="edit-ev-category"
+              class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-950 dark:text-white">
+              ${['Blood Donation', 'Donation', 'Cleanup', 'Education', 'Volunteer', 'Other'].map(category =>
+                `<option value="${category}" ${ev.category === category ? 'selected' : ''}>${category}</option>`
+              ).join('')}
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Date</label>
+            <input id="edit-ev-date" type="date"
+              value="${escapeHTML(ev.date || '')}"
+              class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-950 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Location</label>
+            <input id="edit-ev-loc" type="text"
+              value="${escapeHTML(ev.location || '')}"
+              class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-950 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Image URL</label>
+            <input id="edit-ev-image" type="url"
+              value="${escapeHTML(ev.image || '')}"
+              class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-950 dark:text-white" />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1">Description</label>
+            <textarea id="edit-ev-description" rows="4"
+              class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-950 dark:text-white">${escapeHTML(ev.description || '')}</textarea>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button onclick="closeModal()"
+              class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold">
+              Cancel
+            </button>
+
+            <button onclick="saveEventEdit('${ev.id || ev._id}')"
+              class="px-4 py-2 rounded-xl bg-teal-700 text-white font-bold">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+
+    async function saveEventEdit(eventId) {
+      const ev = state.events.find(
+        e => String(e.id || e._id) === String(eventId)
+      );
+
+      if (!ev) {
+        showToast("Event not found!", "error");
+        return;
+      }
+
+      const updatedData = {
+        title: document.getElementById('edit-ev-title').value.trim(),
+        category: document.getElementById('edit-ev-category').value,
+        date: document.getElementById('edit-ev-date').value,
+        location: document.getElementById('edit-ev-loc').value.trim(),
+        image: document.getElementById('edit-ev-image').value.trim(),
+        description: document.getElementById('edit-ev-description').value.trim(),
+        organizer: ev.organizer,
+        organizerEmail: ev.organizerEmail || null
+      };
+
+      if (Object.values(updatedData).slice(0, 6).some(value => !value)) {
+        showToast("Please fill in all event fields!", "error");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/events/${ev.id || ev._id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${readAuthToken()}`
+            },
+            body: JSON.stringify(updatedData)
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || "Update failed");
+        }
+
+        await loadApiState();
+        showToast("All event information updated successfully!", "success");
+        closeModal();
+        renderApp();
+
+      } catch (error) {
+        console.error("Update error:", error);
+        showToast(error.message || "Failed to update event!", "error");
+      }
+    }
+
+
+    function openDeleteModal(eventId) {
+      const modal = document.getElementById('modal-container');
+      modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+          <i data-lucide="alert-triangle" class="w-10 h-10 text-rose-500 mx-auto"></i>
+          <h3 class="font-bold text-lg text-slate-900 dark:text-white">Delete Event?</h3>
+          <p class="text-xs text-slate-500">Are you sure you want to permanently delete this event? This action cannot be undone.</p>
+          <div class="flex justify-center space-x-3 pt-2">
+            <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800 font-bold text-xs">Cancel</button>
+            <button onclick="confirmDeleteEvent('${eventId}')" class="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs">Delete Now</button>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    async function confirmDeleteEvent(eventId) {
+      try {
+        const response = await fetch(`/api/events/${eventId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${readAuthToken()}` }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not delete event.');
+        await loadApiState();
+        showToast('Event deleted successfully.', 'success');
+        closeModal();
+        renderApp();
+      } catch (error) {
+        showToast(error.message || 'Could not delete event.', 'error');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modal-container').classList.add('hidden');
+    }
+
+    function handleSearchChange(e) {
+      state.searchQuery = e.target.value;
+      renderApp();
+    }
+
+    function handleCategoryFilter(e) {
+      state.selectedCategory = e.target.value;
+      renderApp();
+    }
+
+    function clearSearchFilter() {
+      state.searchQuery = '';
+      state.selectedCategory = 'All';
+      renderApp();
+    }
+
+    function toggleSkeletonLoading() {
+      state.isSkeletonLoading = !state.isSkeletonLoading;
+      renderApp();
+    }
+
+    async function handleUpdateProfile(e) {
+      e.preventDefault();
+      const token = readAuthToken();
+      if (!token) {
+        showToast("Please log in to update your profile.", "error");
+        navigateTo('login');
+        return;
+      }
+
+      const name = document.getElementById('edit-profile-name').value.trim();
+      const photoURL = document.getElementById('edit-profile-avatar').value.trim();
+      if (!name || name.length > 80) {
+        showToast("Name is required and must be 80 characters or fewer.", "error");
+        return;
+      }
+      try {
+        const response = await fetch('/api/users/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ name, photoURL })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Could not update profile.');
+
+        const updatedUser = result.user;
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        state.user.name = updatedUser.name || name;
+        state.user.email = updatedUser.email || state.user.email;
+        state.user.avatar = updatedUser.photoURL || photoURL;
+        showToast(result.message || "Profile updated successfully!", "success");
+        renderApp();
+      } catch (error) {
+        showToast(error.message || "Could not update profile.", "error");
+      }
+    }
+
+    function checkPasswordStrength(e) {
+      const val = e.target.value;
+      const len = val.length >= 6;
+      const upper = /[A-Z]/.test(val);
+      const lower = /[a-z]/.test(val);
+
+      const updateRule = (id, valid) => {
+        const el = document.getElementById(id);
+        if (valid) {
+          el.className = "flex items-center space-x-1.5 text-emerald-500 font-semibold";
+          el.querySelector('i').setAttribute('data-lucide', 'check-circle');
+        } else {
+          el.className = "flex items-center space-x-1.5 text-slate-400";
+          el.querySelector('i').setAttribute('data-lucide', 'circle');
+        }
+      };
+
+      updateRule('rule-len', len);
+      updateRule('rule-upper', upper);
+      updateRule('rule-lower', lower);
+      lucide.createIcons();
+    }
+
+    async function handleAuthLogin(e) {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const email = form.querySelector('input[type="email"]')?.value?.trim();
+      const password = form.querySelector('input[type="password"]')?.value;
+      try {
+        const response = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Login failed.');
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        state.isLoggedIn = true;
+        await loadApiState();
+        showToast('Login successful. Welcome back!', 'success');
+        const redirect = localStorage.getItem('redirectAfterLogin');
+        localStorage.removeItem('redirectAfterLogin');
+        if (redirect?.startsWith('event:')) navigateTo('event-details', redirect.slice(6));
+        else navigateTo('home');
+      } catch (error) {
+        showToast(error.message || 'Login failed.', 'error');
+      }
+    }
+
+    async function handleAuthRegister(e) {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const payload = {
+        name: form.querySelector('[name="name"]')?.value?.trim(),
+        email: form.querySelector('[name="email"]')?.value?.trim(),
+        photoURL: form.querySelector('[name="photoURL"]')?.value?.trim() || '',
+        password: form.querySelector('[name="password"]')?.value || ''
+      };
+      if (!/(?=.*[a-z])(?=.*[A-Z]).{6,}/.test(payload.password)) {
+        showToast('Password needs at least 6 characters, one uppercase letter, and one lowercase letter.', 'error');
+        return;
+      }
+      try {
+        const response = await fetch('/api/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Registration failed.');
+        showToast('Account created successfully. Please log in.', 'success');
+        navigateTo('login');
+      } catch (error) {
+        showToast(error.message || 'Registration failed.', 'error');
+      }
+    }
+
+    function handleSocialAuth(provider) {
+      showToast(`${provider} sign-in requires OAuth provider configuration.`, 'error');
+    }
+
+    function handleFooterSubscribe(e) {
+      e.preventDefault();
+      showToast("Subscribed to Shohojogi Weekly Newsletter!", "success");
+      e.target.reset();
+    }
+
+    function togglePasswordVisibility(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function toggleProfileDropdown() {
+      const drop = document.getElementById('profile-dropdown');
+      drop.classList.toggle('hidden');
+    }
+
+    function toggleMobileMenu() {
+      const mob = document.getElementById('mobile-menu');
+      mob.classList.toggle('hidden');
+    }
+
+    // TOAST NOTIFICATION RENDERER
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const getBg = () => {
+        if (type === 'success') return 'bg-emerald-600 text-white';
+        if (type === 'error') return 'bg-rose-600 text-white';
+        return 'bg-slate-900 text-amber-400 border border-slate-700';
+      };
+
+      toast.className = `toast-anim p-4 rounded-2xl shadow-2xl flex items-center space-x-3 pointer-events-auto text-xs font-semibold ${getBg()}`;
+      toast.innerHTML = `
+        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5 flex-shrink-0"></i>
+        <span>${msg}</span>
+      `;
+
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3500);
+    }
+
+    // THEME SWITCHER LOGIC
+    function updateThemeUI(isDark) {
+      const btn = document.getElementById('theme-toggle-btn');
+      const sunIcon = document.getElementById('theme-icon-sun');
+      const moonIcon = document.getElementById('theme-icon-moon');
+      if (!btn) return;
+
+      if (isDark) {
+        if (sunIcon) sunIcon.classList.remove('hidden');
+        if (moonIcon) moonIcon.classList.add('hidden');
+        btn.setAttribute('aria-label', 'Switch to light mode');
+        btn.setAttribute('title', 'Switch to light mode');
+      } else {
+        if (sunIcon) sunIcon.classList.add('hidden');
+        if (moonIcon) moonIcon.classList.remove('hidden');
+        btn.setAttribute('aria-label', 'Switch to dark mode');
+        btn.setAttribute('title', 'Switch to dark mode');
+      }
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      try {
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      } catch (e) {}
+      updateThemeUI(isDark);
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    function initTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      updateThemeUI(isDark);
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+          try {
+            if (!localStorage.getItem('theme')) {
+              document.documentElement.classList.toggle('dark', e.matches);
+              updateThemeUI(e.matches);
+              if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+              }
+            }
+          } catch (err) {}
+        });
+      }
+    }
+
+    // INITIAL LOAD
+    window.onload = async function() {
+      initTheme();
+      try {
+        await loadApiState();
+      } catch (error) {
+        console.error('Shohojogi API could not be reached:', error);
+        state.events = [];
+        state.featuredEvents = [];
+        showToast('Upcoming events could not be loaded. Please try again later.', 'error');
+      }
+      renderApp('home');
+    };
+    document.addEventListener('DOMContentLoaded', initTheme);
+  </script>
+</body>
+</html>
