@@ -1,0 +1,205 @@
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+/* Theme Colors */
+:root {
+  color-scheme: dark;
+  --background: #030712;
+  --surface: #111827;
+  --surface-secondary: #1f2937;
+  --foreground: #ffffff;
+  --muted: #9ca3af;
+  --border: #374151;
+  --primary: #22c55e;
+}
+
+html.light {
+  color-scheme: light;
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --surface-secondary: #f3f4f6;
+  --foreground: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #16a34a;
+}
+
+/* Global Foundation */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--foreground);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+
+pre,
+code,
+table {
+  max-width: 100%;
+}
+
+pre {
+  overflow-x: auto;
+}
+
+/* Theme Utility Classes */
+.theme-bg {
+  background-color: var(--background);
+}
+
+.theme-surface {
+  background-color: var(--surface);
+}
+
+.theme-text {
+  color: var(--foreground);
+}
+
+.theme-muted {
+  color: var(--muted);
+}
+
+.theme-border {
+  border-color: var(--border);
+}
+
+.theme-primary {
+  color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  main {
+    min-width: 0;
+  }
+
+  h1 {
+    overflow-wrap: anywhere;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Theme compatibility for the existing Tailwind utility-based App Router pages. */
+html.light main.bg-gray-950 {
+  background-color: #f9fafb !important;
+  color: #111827;
+}
+
+html.light main.bg-gray-950 .bg-gray-900 {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb;
+}
+
+html.light main.bg-gray-950 .bg-gray-800,
+html.light main.bg-gray-950 .bg-gray-950 {
+  background-color: #f3f4f6 !important;
+}
+
+html.light main.bg-gray-950 .border-gray-800,
+html.light main.bg-gray-950 .border-gray-700 {
+  border-color: #e5e7eb !important;
+}
+
+html.light main.bg-gray-950 :not(button):not(a).text-white {
+  color: #111827 !important;
+}
+
+html.light main.bg-gray-950 .text-gray-300,
+html.light main.bg-gray-950 .text-gray-400 {
+  color: #4b5563 !important;
+}
+
+html.light main.bg-gray-950 .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+html.dark main.bg-gray-50 {
+  background-color: #030712 !important;
+  color: #f9fafb;
+}
+
+html.dark main.bg-gray-50 .bg-white {
+  background-color: #111827 !important;
+  border-color: #374151;
+}
+
+html.dark main.bg-gray-50 .text-gray-900 {
+  color: #f9fafb !important;
+}
+
+html.dark main.bg-gray-50 .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+html.dark main.bg-gray-50 .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+html.dark main.bg-gray-50 .border-gray-200 {
+  border-color: #374151 !important;
+}
