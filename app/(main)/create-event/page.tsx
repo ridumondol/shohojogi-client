@@ -62,7 +62,7 @@ export default function CreateEventPage() {
   // Redirect only after the browser has checked the stored session.
   useEffect(() => {
     if (token === "") {
-      router.replace("/login");
+      router.replace("/login?returnTo=/create-event");
     }
   }, [router, token]);
 

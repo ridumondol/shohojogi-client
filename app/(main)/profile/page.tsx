@@ -25,7 +25,7 @@ export default function ProfilePage() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        router.push("/login");
+        router.push("/login?returnTo=/profile");
         return;
       }
 

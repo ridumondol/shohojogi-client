@@ -30,7 +30,7 @@ export default function MyEventsPage() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-          router.replace("/login");
+          router.replace("/login?returnTo=/my-events");
           return;
         }
 

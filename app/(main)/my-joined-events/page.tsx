@@ -25,7 +25,7 @@ export default function MyJoinedEventsPage() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-          router.replace("/login");
+          router.replace("/login?returnTo=/my-joined-events");
           return;
         }
 

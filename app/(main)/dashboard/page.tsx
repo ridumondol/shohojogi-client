@@ -36,7 +36,7 @@ export default function DashboardPage() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-          router.replace("/login");
+          router.replace("/login?returnTo=/dashboard");
           return;
         }
 

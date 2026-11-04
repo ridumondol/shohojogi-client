@@ -34,12 +34,22 @@ function SiteHeader() {
     };
     readUser();
     window.addEventListener("storage", readUser);
-    return () => window.removeEventListener("storage", readUser);
+    window.addEventListener("shohojogi-auth-change", readUser);
+    return () => {
+      window.removeEventListener("storage", readUser);
+      window.removeEventListener("shohojogi-auth-change", readUser);
+    };
   }, [pathname]);
 
-  function logout() {
+  async function logout() {
+    try {
+      await fetch("/api/users/logout", { method: "POST" });
+    } catch {
+      // ignore network errors during logout
+    }
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    window.dispatchEvent(new Event("shohojogi-auth-change"));
     setUser(null);
     setProfileOpen(false);
     setMobileOpen(false);
