@@ -3,15 +3,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense } from "react";
-import { useEffect, useState, type ReactNode } from "react";
-import { HeartHandshake, Menu, Moon, Sun, X } from "lucide-react";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  CalendarCheck2,
+  CalendarPlus,
+  HeartHandshake,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Moon,
+  Sun,
+  User,
+  Users,
+  X,
+} from "lucide-react";
 import { useTheme } from "@/app/ThemeProvider";
+import { ToastContainer } from "@/components/ui/toast-system";
 
 type StoredUser = {
+  id?: string;
   name?: string;
   email?: string;
   photoURL?: string;
+  role?: string;
 };
 
 function SiteHeader() {
@@ -21,6 +35,14 @@ function SiteHeader() {
   const [user, setUser] = useState<StoredUser | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
+    setMobileOpen(false);
+    setProfileOpen(false);
+  }
 
   useEffect(() => {
     const readUser = () => {
@@ -39,7 +61,18 @@ function SiteHeader() {
       window.removeEventListener("storage", readUser);
       window.removeEventListener("shohojogi-auth-change", readUser);
     };
-  }, [pathname]);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function logout() {
     try {
@@ -56,74 +89,366 @@ function SiteHeader() {
     router.push("/login");
   }
 
-  const navLinks = [
-    { href: "/events", label: "Upcoming Events" },
-    { href: "/dashboard", label: "Dashboard", protected: true },
-  ];
+  const isHomeActive = pathname === "/";
+  const isEventsActive = pathname.startsWith("/events");
+  const isDashboardActive = pathname.startsWith("/dashboard");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 text-slate-900 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-100">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 text-slate-900 shadow-sm backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/95 dark:text-slate-100 transition-colors">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Shohojogi home">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-800 text-amber-300">
+        {/* Brand Logo */}
+        <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="Shohojogi Home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-800 text-amber-300 shadow-sm transition-transform duration-200 group-hover:scale-105">
             <HeartHandshake size={23} aria-hidden="true" />
           </span>
           <span>
-            <span className="block text-lg font-extrabold tracking-tight text-teal-800 dark:text-teal-300">Shohojogi</span>
-            <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Serve Together</span>
+            <span className="block text-lg font-black tracking-tight text-teal-800 dark:text-teal-300">Shohojogi</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Serve Together</span>
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
-          {navLinks.filter((link) => !link.protected || user).map((link) => (
-            <Link key={link.href} href={link.href} className="text-sm font-semibold text-slate-600 transition hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300">
-              {link.label}
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center gap-1.5 lg:gap-2 md:flex" aria-label="Main navigation">
+          <Link
+            href="/"
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+              isHomeActive
+                ? "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold"
+                : "text-slate-600 hover:text-teal-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-teal-300 dark:hover:bg-slate-900"
+            }`}
+          >
+            Home
+          </Link>
+          <Link
+            href="/events"
+            className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+              isEventsActive
+                ? "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold"
+                : "text-slate-600 hover:text-teal-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-teal-300 dark:hover:bg-slate-900"
+            }`}
+          >
+            Upcoming Events
+          </Link>
+          <Link
+            href="/#how-it-works"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:text-teal-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-teal-300 dark:hover:bg-slate-900 transition-colors"
+          >
+            How It Works
+          </Link>
+          <Link
+            href="/#gallery"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:text-teal-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-teal-300 dark:hover:bg-slate-900 transition-colors"
+          >
+            Gallery
+          </Link>
+          <Link
+            href="/#newsletter"
+            className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 hover:text-teal-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-teal-300 dark:hover:bg-slate-900 transition-colors"
+          >
+            Contact
+          </Link>
+          {user && (
+            <Link
+              href="/dashboard"
+              className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
+                isDashboardActive
+                  ? "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold"
+                  : "text-slate-600 hover:text-teal-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-teal-300 dark:hover:bg-slate-900"
+              }`}
+            >
+              Dashboard
             </Link>
-          ))}
+          )}
         </nav>
 
+        {/* Right Action Items (Desktop) */}
         <div className="hidden items-center gap-3 md:flex">
-          <button type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} className="rounded-xl border border-slate-200 p-2.5 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            className="rounded-xl border border-slate-200 p-2.5 text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+          >
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+
           {user ? (
-            <div className="relative flex items-center gap-3">
-              <button type="button" title={user.name || user.email || "Your profile"} onClick={() => setProfileOpen((open) => !open)} className="flex items-center gap-2 rounded-full focus-visible:outline-2 focus-visible:outline-teal-600">
-                {user.photoURL ? <Image src={user.photoURL} alt={user.name || "Profile"} width={36} height={36} unoptimized className="h-9 w-9 rounded-full object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-100 font-bold text-teal-800">{user.name?.charAt(0).toUpperCase() || "U"}</span>}
-                <span className="max-w-28 truncate text-sm font-semibold">{user.name || "Account"}</span>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                title={user.name || user.email || "Your profile"}
+                onClick={() => setProfileOpen((prev) => !prev)}
+                aria-expanded={profileOpen}
+                aria-haspopup="true"
+                className="group flex items-center gap-2.5 rounded-full border border-slate-200 p-1 pr-3 transition hover:border-teal-500/50 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 dark:border-slate-800 dark:hover:border-teal-500/50 dark:hover:bg-slate-900"
+              >
+                {user.photoURL ? (
+                  <Image
+                    src={user.photoURL}
+                    alt={user.name || "Profile"}
+                    width={34}
+                    height={34}
+                    unoptimized
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-teal-700/20"
+                  />
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-teal-800 font-bold text-white text-xs">
+                    {user.name?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                )}
+                <span className="max-w-[120px] truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                  {user.name || "Account"}
+                </span>
               </button>
+
+              {/* Avatar Dropdown */}
               {profileOpen && (
-                <div className="absolute right-0 top-12 z-50 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                  <Link href="/create-event" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Create Event</Link>
-                  <Link href="/my-events" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Manage Events</Link>
-                  <Link href="/my-joined-events" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Joined Events</Link>
-                  <Link href="/profile" className="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Profile</Link>
-                  <button type="button" onClick={logout} className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">Logout</button>
+                <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {/* User Profile Summary Header */}
+                  <div className="border-b border-slate-100 px-3 py-2.5 dark:border-slate-800">
+                    <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {user.name || "Community Member"}
+                    </p>
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  <div className="mt-1 space-y-0.5">
+                    <Link
+                      href="/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+                    >
+                      <User size={16} className="text-teal-600 dark:text-teal-400" />
+                      <span>My Profile</span>
+                    </Link>
+                    <Link
+                      href="/create-event"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+                    >
+                      <CalendarPlus size={16} className="text-teal-600 dark:text-teal-400" />
+                      <span>Create Event</span>
+                    </Link>
+                    <Link
+                      href="/my-events"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+                    >
+                      <CalendarCheck2 size={16} className="text-teal-600 dark:text-teal-400" />
+                      <span>Manage Events</span>
+                    </Link>
+                    <Link
+                      href="/my-joined-events"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+                    >
+                      <Users size={16} className="text-teal-600 dark:text-teal-400" />
+                      <span>Joined Events</span>
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+                    >
+                      <LayoutDashboard size={16} className="text-teal-600 dark:text-teal-400" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </div>
+
+                  <div className="mt-1 border-t border-slate-100 pt-1 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleTheme();
+                        setProfileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-teal-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-teal-300"
+                    >
+                      {theme === "dark" ? <Sun size={16} className="text-amber-500" /> : <Moon size={16} className="text-slate-600" />}
+                      <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                    >
+                      <LogOut size={16} />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           ) : (
-            <Link href="/login" className="rounded-xl bg-teal-800 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-teal-700">Login</Link>
+            <Link
+              href="/login"
+              className="rounded-xl bg-teal-800 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
+            >
+              Login
+            </Link>
           )}
         </div>
 
+        {/* Mobile Hamburger Button */}
         <div className="flex items-center gap-2 md:hidden">
-          <button type="button" onClick={toggleTheme} aria-label="Toggle theme" className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button>
-          <button type="button" onClick={() => setMobileOpen((open) => !open)} aria-label={mobileOpen ? "Close menu" : "Open menu"} className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">{mobileOpen ? <X size={19} /> : <Menu size={19} />}</button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            className="rounded-xl border border-slate-200 p-2 text-slate-700 dark:border-slate-800 dark:text-slate-200"
+          >
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            className="rounded-xl border border-slate-200 p-2 text-slate-700 dark:border-slate-800 dark:text-slate-200"
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
 
+      {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="border-t border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950 md:hidden">
+        <div className="border-t border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950 md:hidden animate-in slide-in-from-top-2 duration-150">
+          {user && (
+            <div className="mb-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-900">
+              {user.photoURL ? (
+                <Image
+                  src={user.photoURL}
+                  alt={user.name || "Profile"}
+                  width={42}
+                  height={42}
+                  unoptimized
+                  className="h-10 w-10 rounded-full object-cover ring-2 ring-teal-700/20"
+                />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-teal-800 font-bold text-white">
+                  {user.name?.charAt(0).toUpperCase() || "U"}
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
+                  {user.name || "Community Member"}
+                </p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+          )}
+
           <nav className="flex flex-col gap-1" aria-label="Mobile navigation">
-            <Link href="/events" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800">Upcoming Events</Link>
-            {user ? <>
-              <Link href="/create-event" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Create Event</Link>
-              <Link href="/my-events" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Manage Events</Link>
-              <Link href="/my-joined-events" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Joined Events</Link>
-              <Link href="/profile" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">Profile</Link>
-              <button onClick={logout} className="rounded-lg px-3 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40">Logout</button>
-            </> : <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-3 text-sm font-bold text-teal-800 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/40">Login</Link>}
+            <Link
+              href="/"
+              onClick={() => setMobileOpen(false)}
+              className={`rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
+                isHomeActive
+                  ? "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold"
+                  : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              href="/events"
+              onClick={() => setMobileOpen(false)}
+              className={`rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
+                isEventsActive
+                  ? "bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 font-bold"
+                  : "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+              }`}
+            >
+              Upcoming Events
+            </Link>
+            <Link
+              href="/#how-it-works"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+            >
+              How It Works
+            </Link>
+            <Link
+              href="/#gallery"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+            >
+              Gallery
+            </Link>
+            <Link
+              href="/#newsletter"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+            >
+              Contact
+            </Link>
+
+            {user ? (
+              <>
+                <div className="my-2 border-t border-slate-200 dark:border-slate-800" />
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+                >
+                  <User size={17} className="text-teal-600 dark:text-teal-400" />
+                  <span>My Profile</span>
+                </Link>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+                >
+                  <LayoutDashboard size={17} className="text-teal-600 dark:text-teal-400" />
+                  <span>Dashboard</span>
+                </Link>
+                <Link
+                  href="/create-event"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+                >
+                  <CalendarPlus size={17} className="text-teal-600 dark:text-teal-400" />
+                  <span>Create Event</span>
+                </Link>
+                <Link
+                  href="/my-events"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+                >
+                  <CalendarCheck2 size={17} className="text-teal-600 dark:text-teal-400" />
+                  <span>Manage Events</span>
+                </Link>
+                <Link
+                  href="/my-joined-events"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
+                >
+                  <Users size={17} className="text-teal-600 dark:text-teal-400" />
+                  <span>Joined Events</span>
+                </Link>
+                <button
+                  onClick={logout}
+                  className="mt-2 flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                >
+                  <LogOut size={17} />
+                  <span>Log Out</span>
+                </button>
+              </>
+            ) : (
+              <div className="mt-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="block w-full rounded-xl bg-teal-800 py-3 text-center text-sm font-bold text-white shadow-sm hover:bg-teal-700"
+                >
+                  Log In
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       )}
@@ -221,23 +546,48 @@ const socialLinks = [
 function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-slate-800 bg-slate-950 text-slate-300">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
-          <h2 className="text-lg font-extrabold text-white">Shohojogi</h2>
-          <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">A community platform for people who want to make local social change happen together.</p>
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-800 text-amber-300">
+              <HeartHandshake size={20} aria-hidden="true" />
+            </span>
+            <span className="text-xl font-black text-white">Shohojogi</span>
+          </div>
+          <p className="mt-3 max-w-xs text-sm leading-6 text-slate-400">
+            A trusted community-service platform for everyday changemakers across Bangladesh. Show up, take action, and serve together.
+          </p>
         </div>
         <div>
-          <h3 className="font-bold text-white">Explore</h3>
-          <div className="mt-3 flex flex-col gap-2 text-sm"><Link href="/events" className="hover:text-amber-300">Upcoming Events</Link><Link href="/create-event" className="hover:text-amber-300">Create an Event</Link><Link href="/profile" className="hover:text-amber-300">My Profile</Link></div>
+          <h3 className="font-bold text-white text-base">Quick Links</h3>
+          <div className="mt-3 flex flex-col gap-2.5 text-sm">
+            <Link href="/" className="hover:text-amber-300 transition-colors">Home</Link>
+            <Link href="/events" className="hover:text-amber-300 transition-colors">Upcoming Events</Link>
+            <Link href="/#how-it-works" className="hover:text-amber-300 transition-colors">How It Works</Link>
+            <Link href="/#gallery" className="hover:text-amber-300 transition-colors">Photo Gallery</Link>
+            <Link href="/dashboard" className="hover:text-amber-300 transition-colors">Volunteer Dashboard</Link>
+          </div>
         </div>
         <div>
-          <h3 className="font-bold text-white">Get Involved</h3>
-          <p className="mt-3 text-sm leading-6 text-slate-400">Organize a local drive, invite neighbours, and help build a stronger community.</p>
-          <p className="mt-2 text-sm text-slate-400">For event-specific questions, contact the event organizer.</p>
+          <h3 className="font-bold text-white text-base">Get Involved</h3>
+          <p className="mt-3 text-sm leading-6 text-slate-400">
+            Organise a warmth event, plant trees in your neighbourhood, or join an emergency medical camp.
+          </p>
+          <div className="mt-4">
+            <Link
+              href="/create-event"
+              className="inline-flex items-center gap-2 rounded-xl bg-teal-800 px-4 py-2 text-xs font-bold text-white transition hover:bg-teal-700"
+            >
+              Host a Community Event
+            </Link>
+          </div>
         </div>
         <div>
-          <h3 className="font-bold text-white">Follow Shohojogi</h3>
-          <div className="mt-3 flex flex-wrap gap-2.5">
+          <h3 className="font-bold text-white text-base">Connect With Us</h3>
+          <p className="mt-3 text-xs text-slate-400 leading-relaxed">
+            Follow our initiatives and tag #Shohojogi to share your community stories.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2.5">
             {socialLinks.map((item) => (
               <a
                 key={item.name}
@@ -253,7 +603,9 @@ function SiteFooter() {
           </div>
         </div>
       </div>
-      <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-500">© {2026} Shohojogi. Show up. Serve together.</div>
+      <div className="border-t border-slate-800/80 py-5 text-center text-xs text-slate-500">
+        © 2026 Shohojogi. Built for community-first social development across Bangladesh.
+      </div>
     </footer>
   );
 }
@@ -298,6 +650,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <Suspense fallback={<SiteFooterFallback />}>
         <SiteFooter />
       </Suspense>
+      <ToastContainer />
     </div>
   );
 }

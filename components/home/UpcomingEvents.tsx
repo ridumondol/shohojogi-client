@@ -4,14 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, MapPin, RefreshCw, PlusCircle } from "lucide-react";
+import { formatEventDate } from "@/lib/event-date";
 
 interface EventRecord {
   _id: string;
   title: string;
   category?: string;
+  eventType?: string;
   location?: string;
   date?: string;
+  eventDate?: string;
   image?: string;
+  thumbnail?: string;
   description?: string;
 }
 
@@ -22,8 +26,13 @@ function CategoryBadge({ category }: { category?: string }) {
     Plantation: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
     "Blood Donation": "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300",
     "Food Drive": "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
+    Food: "bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-300",
+    Healthcare: "bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300",
+    Education: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300",
+    Relief: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300",
+    "Community Support": "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
   };
-  const cls = styles[category ?? ""] ?? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300";
+  const cls = styles[category ?? ""] ?? "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300";
   return (
     <span className={`rounded-full px-3 py-1 text-xs font-bold shadow-sm ${cls}`}>
       {category ?? "Community Event"}
@@ -32,12 +41,16 @@ function CategoryBadge({ category }: { category?: string }) {
 }
 
 function EventCard({ event }: { event: EventRecord }) {
+  const imageUrl = event.image || event.thumbnail;
+  const categoryName = event.category || event.eventType;
+  const dateStr = event.date || event.eventDate;
+
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
       <div className="relative aspect-video overflow-hidden">
-        {event.image ? (
+        {imageUrl ? (
           <Image
-            src={event.image}
+            src={imageUrl}
             alt={event.title}
             fill
             unoptimized
@@ -48,7 +61,7 @@ function EventCard({ event }: { event: EventRecord }) {
           <div className="h-full w-full bg-slate-200 dark:bg-slate-700" />
         )}
         <span className="absolute left-3 top-3">
-          <CategoryBadge category={event.category} />
+          <CategoryBadge category={categoryName} />
         </span>
       </div>
 
@@ -64,15 +77,10 @@ function EventCard({ event }: { event: EventRecord }) {
               {event.location}
             </p>
           )}
-          {event.date && (
+          {dateStr && (
             <p className="flex items-center gap-1.5">
               <CalendarDays size={13} aria-hidden="true" />
-              {new Date(event.date).toLocaleDateString("en-BD", {
-                weekday: "short",
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
+              {formatEventDate(dateStr, "EEE, MMM d, yyyy")}
             </p>
           )}
         </div>
@@ -142,7 +150,7 @@ export default function UpcomingEvents() {
               Upcoming Events Near You
             </h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Discover social development drives across Dhaka, Sylhet, and Chattogram.
+              Discover social development events across Dhaka, Sylhet, and Chattogram.
             </p>
           </div>
           <Link
@@ -176,7 +184,7 @@ export default function UpcomingEvents() {
               No upcoming events yet
             </p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Be the first to organise a community drive in your area.
+              Be the first to organise a community event in your area.
             </p>
             <Link
               href="/create-event"

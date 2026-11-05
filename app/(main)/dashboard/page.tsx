@@ -1,7 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  CalendarCheck,
+  CalendarDays,
+  CalendarPlus,
+  Compass,
+  Heart,
+  HeartHandshake,
+  LayoutDashboard,
+  LogOut,
+  TrendingUp,
+  User,
+  Users,
+} from "lucide-react";
+import { showToast } from "@/components/ui/toast-system";
+
+function subscribeToAuthChanges(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener("shohojogi-auth-change", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("shohojogi-auth-change", callback);
+  };
+}
+
+function getUserNameSnapshot() {
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const user = JSON.parse(stored) as { name?: string };
+      return user.name || "Volunteer";
+    }
+  } catch {
+    // Keep the existing empty-name fallback for invalid stored data.
+  }
+  return "";
+}
 
 interface DashboardStats {
   totalEvents: number;
@@ -28,45 +65,39 @@ export default function DashboardPage() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const userName = useSyncExternalStore(subscribeToAuthChanges, getUserNameSnapshot, () => "");
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login?returnTo=/dashboard");
+      return;
+    }
+
     async function fetchDashboardStats() {
       try {
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-          router.replace("/login?returnTo=/dashboard");
-          return;
-        }
-
-        const response = await fetch(
-          "/api/dashboard/stats",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch("/api/dashboard/stats", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (response.status === 401 || response.status === 403) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
-          router.replace("/login");
+          router.replace("/login?returnTo=/dashboard");
           return;
         }
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to load dashboard");
+          throw new Error(data.message || "Failed to load dashboard metrics.");
         }
 
         setStats(data.stats);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Something went wrong"
-        );
+        showToast.error(err instanceof Error ? err.message : "Failed to load statistics.");
       } finally {
         setLoading(false);
       }
@@ -75,135 +106,218 @@ export default function DashboardPage() {
     fetchDashboardStats();
   }, [router]);
 
-  const handleLogout = () => {
+  async function handleLogout() {
+    try {
+      await fetch("/api/users/logout", { method: "POST" });
+    } catch {
+      // ignore
+    }
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    window.dispatchEvent(new Event("shohojogi-auth-change"));
     router.replace("/login");
-  };
+  }
 
-  const cards = [
-    { title: "Total Events", value: stats.totalEvents, icon: "📅" },
-    { title: "Total Users", value: stats.totalUsers, icon: "👥" },
-    { title: "Total Participants", value: stats.totalParticipants, icon: "🤝" },
-    { title: "Upcoming Events", value: stats.upcomingEvents, icon: "🌱" },
-  ];
-
-  const impactCards = [
-    {
-      title: "Events Created",
-      value: stats.eventsCreated,
-      icon: "📝",
-      description: "Events you organized",
-    },
-    {
-      title: "Events Joined",
-      value: stats.eventsJoined,
-      icon: "🙌",
-      description: "Events you participated in",
-    },
-    {
-      title: "Completed Events",
-      value: stats.completedEvents,
-      icon: "🏆",
-      description: "Joined events that have passed",
-    },
-    {
-      title: "Participants in Your Events",
-      value: stats.myTotalParticipants,
-      icon: "❤️",
-      description: "People joining your events",
-    },
-  ];
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-12 dark:bg-slate-950 sm:px-6">
+        <div className="mx-auto max-w-7xl animate-pulse space-y-6">
+          <div className="h-36 rounded-3xl bg-slate-200 dark:bg-slate-800" />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-32 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6 text-gray-900 transition-colors duration-200 dark:bg-gray-950 dark:text-white md:p-10">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="mb-2 text-sm font-semibold text-green-600 dark:text-green-400">
-              SHOHOJOGI DASHBOARD
-            </p>
+    <main className="min-h-screen bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {/* Welcome Header Hero */}
+        <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+          <div className="absolute right-0 top-0 -mr-16 -mt-16 h-48 w-48 rounded-full bg-teal-500/10 blur-3xl" />
+          
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-800 dark:bg-teal-950 dark:text-teal-300">
+                <LayoutDashboard size={14} />
+                Volunteer Hub
+              </span>
+              <h1 className="mt-3 text-3xl font-black text-slate-900 dark:text-white sm:text-4xl">
+                Welcome back{userName ? `, ${userName}` : ""}!
+              </h1>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                Track your social impact, upcoming events, and community activities across Bangladesh.
+              </p>
+            </div>
 
-            <h1 className="text-3xl font-bold md:text-4xl">
-              Welcome to Dashboard
-            </h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/create-event"
+                className="inline-flex items-center gap-2 rounded-xl bg-teal-800 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
+              >
+                <CalendarPlus size={16} />
+                Host an Event
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:border-slate-700 dark:bg-slate-800 dark:text-rose-400 dark:hover:bg-rose-950/40"
+              >
+                <LogOut size={15} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </section>
 
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Manage your community activities and events.
-            </p>
+        {/* Quick Action Navigation Grid */}
+        <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <Link
+            href="/events"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-teal-500/50 hover:shadow dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="rounded-xl bg-teal-100 p-2.5 text-teal-800 dark:bg-teal-950 dark:text-teal-300">
+              <Compass size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Explore Events</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Find active events</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/my-joined-events"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-amber-500/50 hover:shadow dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="rounded-xl bg-amber-100 p-2.5 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+              <HeartHandshake size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Joined Events</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">View participation</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/my-events"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-500/50 hover:shadow dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              <CalendarCheck size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Manage Events</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Your created events</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/profile"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-indigo-500/50 hover:shadow dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="rounded-xl bg-indigo-100 p-2.5 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
+              <User size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">My Profile</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Account & bio</p>
+            </div>
+          </Link>
+        </section>
+
+        {/* Personal Impact Section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
+                Your Direct Social Contribution
+              </span>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">
+                My Community Impact 🌍
+              </h2>
+            </div>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white transition hover:bg-red-700"
-          >
-            Logout
-          </button>
-        </div>
-
-        {loading ? (
-          <p className="text-gray-600 dark:text-gray-400">
-            Loading dashboard...
-          </p>
-        ) : error ? (
-          <p className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-400">
-            {error}
-          </p>
-        ) : (
-          <>
-            <h2 className="mb-5 text-2xl font-bold">Platform Overview</h2>
-
-            <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {cards.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-2xl border border-gray-200 bg-white p-6 transition-colors dark:border-gray-800 dark:bg-gray-900"
-                >
-                  <div className="mb-5 text-3xl">{card.icon}</div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {card.title}
-                  </p>
-                  <h3 className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                    {card.value}
-                  </h3>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Events Organized</span>
+              <p className="mt-2 text-3xl font-black text-teal-800 dark:text-teal-300">{stats.eventsCreated}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Events you initiated</p>
             </div>
 
-            <div className="mb-6">
-              <p className="mb-2 text-sm font-semibold text-green-600 dark:text-green-400">
-                YOUR CONTRIBUTION
-              </p>
-              <h2 className="text-2xl font-bold">My Impact 🌍</h2>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Every small action creates a positive change in the community.
-              </p>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Events Joined</span>
+              <p className="mt-2 text-3xl font-black text-amber-600 dark:text-amber-400">{stats.eventsJoined}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Events you participated in</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {impactCards.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-2xl border border-green-200 bg-white p-6 transition-colors hover:border-green-500 dark:border-green-900/50 dark:bg-gray-900"
-                >
-                  <div className="mb-5 text-3xl">{card.icon}</div>
-
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {card.title}
-                  </p>
-
-                  <h3 className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-                    {card.value}
-                  </h3>
-
-                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-500">
-                    {card.description}
-                  </p>
-                </div>
-              ))}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Completed Events</span>
+              <p className="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">{stats.completedEvents}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Past attended initiatives</p>
             </div>
-          </>
-        )}
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Total Participants</span>
+              <p className="mt-2 text-3xl font-black text-indigo-600 dark:text-indigo-400">{stats.myTotalParticipants}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">People joining your events</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Platform Overview Statistics */}
+        <section className="space-y-4">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Collective Movement
+            </span>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">
+              Platform-Wide Activity
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">All Events</span>
+                <CalendarDays size={18} className="text-slate-400" />
+              </div>
+              <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{stats.totalEvents}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Total events hosted</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Registered Volunteers</span>
+                <Users size={18} className="text-slate-400" />
+              </div>
+              <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{stats.totalUsers}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Active citizens across BD</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Total RSVPs</span>
+                <Heart size={18} className="text-slate-400" />
+              </div>
+              <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{stats.totalParticipants}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Volunteer attendances</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Upcoming Now</span>
+                <TrendingUp size={18} className="text-teal-600 dark:text-teal-400" />
+              </div>
+              <p className="mt-2 text-2xl font-black text-teal-800 dark:text-teal-300">{stats.upcomingEvents}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Scheduled future events</p>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );

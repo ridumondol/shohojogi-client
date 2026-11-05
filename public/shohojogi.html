@@ -235,7 +235,7 @@
               <span class="font-bold text-2xl tracking-tight text-white font-heading">Shohojogi</span>
             </div>
             <p class="text-sm text-slate-400 leading-relaxed">
-              Empowering local communities across Bangladesh to serve together. From winter warmth drives in Mirpur to river cleanups in Chattogram.
+              Empowering local communities across Bangladesh to serve together. From winter warmth events in Mirpur to river cleanups in Chattogram.
             </p>
             <div class="flex flex-wrap items-center gap-2.5 pt-2">
               <a href="https://facebook.com/shohojogi" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook" class="w-9 h-9 rounded-xl bg-slate-900/80 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400 hover:bg-slate-800 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
@@ -293,7 +293,7 @@
           <!-- Column 4: Newsletter -->
           <div>
             <h4 class="text-white font-semibold mb-4 text-base tracking-wide">Stay Updated</h4>
-            <p class="text-xs text-slate-400 mb-3">Get weekly alerts for social drives near your city.</p>
+            <p class="text-xs text-slate-400 mb-3">Get weekly alerts for social events near your city.</p>
             <form onsubmit="handleFooterSubscribe(event)" class="space-y-2">
               <input type="email" placeholder="Enter your email" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500" />
               <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-xl text-sm transition shadow">Subscribe Now</button>
@@ -435,7 +435,7 @@
                   <span class="text-teal-700 dark:text-teal-400">Serve together.</span>
                 </h1>
                 <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  Join hands with thousands of volunteers across Dhaka, Chattogram, Sylhet, and beyond. Organise warmth drives, environmental cleanups, and blood donation camps with ease.
+                  Join hands with thousands of volunteers across Dhaka, Chattogram, Sylhet, and beyond. Organise warmth events, environmental cleanups, and blood donation camps with ease.
                 </p>
                 
                 <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-2">
@@ -486,7 +486,7 @@
                     <i data-lucide="shield-check" class="w-6 h-6"></i>
                   </div>
                   <div>
-                    <p class="text-xs font-bold text-slate-900 dark:text-white">100% Verified Drives</p>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white">100% Verified Events</p>
                     <p class="text-[10px] text-slate-500">Community reviewed organizers</p>
                   </div>
                 </div>
@@ -509,7 +509,7 @@
                   <i data-lucide="plus-circle" class="w-6 h-6"></i>
                 </div>
                 <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white mb-2">Create Events</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Organize local drives in 2 minutes with customized location pins, schedules, and volunteer quotas.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Organize local events in 2 minutes with customized location pins, schedules, and volunteer quotas.</p>
               </div>
 
               <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition">
@@ -545,7 +545,7 @@
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10">
               <div>
                 <h2 class="text-3xl font-bold font-heading text-slate-900 dark:text-white">Upcoming Events Near You</h2>
-                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Discover social development drives across Dhaka, Sylhet, and Chattogram.</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Discover social development events across Dhaka, Sylhet, and Chattogram.</p>
               </div>
               <button onclick="navigateTo('events')" class="mt-4 sm:mt-0 text-teal-700 dark:text-teal-400 hover:text-teal-800 font-bold text-sm flex items-center space-x-1">
                 <span>View All Events</span>
@@ -822,7 +822,7 @@
                   </div>
 
                   <div class="space-y-3">
-                    <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white">About this Community Drive</h3>
+                    <h3 class="font-bold text-lg font-heading text-slate-900 dark:text-white">About this Community Event</h3>
                     <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                       ${event.description}
                     </p>
@@ -881,7 +881,7 @@
 
           <!-- Related Events Section -->
           <div>
-            <h3 class="text-xl font-bold font-heading text-slate-900 dark:text-white mb-6">Other Drives You Might Like</h3>
+            <h3 class="text-xl font-bold font-heading text-slate-900 dark:text-white mb-6">Other Events You Might Like</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               ${related.map(r => renderEventCardHTML(r)).join('')}
             </div>
@@ -1000,7 +1000,7 @@
             <div class="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 max-w-lg mx-auto">
               <i data-lucide="folder-plus" class="w-12 h-12 text-slate-400 mx-auto mb-3"></i>
               <h3 class="font-bold text-lg text-slate-800 dark:text-slate-200">No Events Created Yet</h3>
-              <p class="text-xs text-slate-500 mt-1">Start hosting social drives in your local community today!</p>
+              <p class="text-xs text-slate-500 mt-1">Start hosting social events in your local community today!</p>
               <button onclick="navigateTo('create-event')" class="mt-4 bg-teal-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl">Create Event Now</button>
             </div>
           ` : `
@@ -1322,7 +1322,7 @@
         <div class="max-w-md mx-auto my-20 p-8 text-center space-y-4">
           <span class="text-6xl font-extrabold text-amber-500 font-heading">404</span>
           <h2 class="text-2xl font-bold font-heading text-slate-900 dark:text-white">Page Not Found</h2>
-          <p class="text-xs text-slate-500">The community drive route you are looking for does not exist or has been archived.</p>
+          <p class="text-xs text-slate-500">The community event page you are looking for does not exist or has been archived.</p>
           <button onclick="navigateTo('home')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 py-3 rounded-xl transition">
             Return to Homepage
           </button>

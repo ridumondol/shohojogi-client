@@ -245,7 +245,7 @@ function LoginForm() {
           Welcome Back
         </h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-          Sign in to your Shohojogi account to manage and join community drives.
+          Sign in to your Shohojogi account to manage and join community events.
         </p>
       </div>
 

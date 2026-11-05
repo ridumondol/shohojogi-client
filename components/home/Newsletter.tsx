@@ -19,16 +19,16 @@ export default function Newsletter() {
     }
     // UI-only: no backend call
     setState("success");
-    setMessage("You're subscribed! We'll send you weekly community drive alerts.");
+    setMessage("You're subscribed! We'll send you weekly community event alerts.");
     setEmail("");
   }
 
   return (
-    <section className="bg-gradient-to-br from-teal-900 via-teal-950 to-slate-950 py-16 text-white">
+    <section id="newsletter" className="bg-gradient-to-br from-teal-900 via-teal-950 to-slate-950 py-16 text-white scroll-mt-16">
       <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-        <h2 className="text-3xl font-bold">Stay Connected to Community Drives</h2>
+        <h2 className="text-3xl font-bold">Stay Connected to Community Events</h2>
         <p className="mt-3 text-sm text-teal-200">
-          Get weekly alerts for social drives near your city. No spam — just community action.
+          Get weekly alerts for social events near your city. No spam — just community action.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-2" noValidate>

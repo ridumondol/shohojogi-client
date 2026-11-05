@@ -8,7 +8,7 @@ import Newsletter from "@/components/home/Newsletter";
 export const metadata: Metadata = {
   title: "Shohojogi | Serve Together — Community Events Bangladesh",
   description:
-    "Discover and join upcoming community-service events across Bangladesh. Organise warmth drives, tree plantations, and blood donation camps with Shohojogi.",
+    "Discover and join upcoming community-service events across Bangladesh. Organise warmth events, tree plantations, and blood donation camps with Shohojogi.",
 };
 
 export default function HomePage() {

@@ -29,7 +29,7 @@ const photos = [
 
 export default function Gallery() {
   return (
-    <section className="border-t border-slate-200 bg-slate-100 py-16 dark:border-slate-800 dark:bg-slate-900/60">
+    <section id="gallery" className="border-t border-slate-200 bg-slate-100 py-16 dark:border-slate-800 dark:bg-slate-900/60 scroll-mt-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white">

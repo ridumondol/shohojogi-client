@@ -6,7 +6,7 @@ const features = [
     iconBg: "bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-400",
     title: "Create Events",
     description:
-      "Organise local drives in minutes with customised location pins, schedules, and volunteer details.",
+      "Organise local events in minutes with customised location pins, schedules, and volunteer details.",
   },
   {
     icon: UserCheck,
@@ -33,7 +33,7 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="border-y border-slate-200 bg-white py-16 dark:border-slate-800 dark:bg-slate-900">
+    <section id="how-it-works" className="border-y border-slate-200 bg-white py-16 dark:border-slate-800 dark:bg-slate-900 scroll-mt-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white">

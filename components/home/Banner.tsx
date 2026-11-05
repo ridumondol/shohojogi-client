@@ -22,7 +22,7 @@ export default function Banner() {
             </h1>
 
             <p className="mx-auto max-w-xl text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg lg:mx-0">
-              Join hands with thousands of volunteers across Dhaka, Chattogram, Sylhet, and beyond. Organise warmth drives, environmental cleanups, and blood donation camps with ease.
+              Join hands with thousands of volunteers across Dhaka, Chattogram, Sylhet, and beyond. Organise warmth events, environmental cleanups, and blood donation camps with ease.
             </p>
 
             <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row lg:justify-start">
@@ -64,7 +64,7 @@ export default function Banner() {
             <div className="relative z-10 overflow-hidden rounded-3xl border-4 border-white shadow-2xl dark:border-slate-800">
               <Image
                 src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=900"
-                alt="Volunteers distributing blankets at a community drive in Bangladesh"
+                alt="Volunteers distributing blankets at a community event in Bangladesh"
                 width={900}
                 height={600}
                 unoptimized
@@ -89,7 +89,7 @@ export default function Banner() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-6 w-6" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white">100% Verified Drives</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">100% Verified Events</p>
                 <p className="text-[10px] text-slate-500">Community reviewed organizers</p>
               </div>
             </div>
